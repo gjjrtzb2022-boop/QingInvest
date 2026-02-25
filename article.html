@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文章详情</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="index.html" class="brand-link" aria-label="InsightVest 首页">
+          <span class="brand-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 17 9 11l4 4 7-8" />
+              <path d="M15 7h5v5" />
+            </svg>
+          </span>
+          <span class="brand-text">InsightVest</span>
+        </a>
+
+        <nav class="site-nav" aria-label="主导航">
+          <a href="#" data-coming-soon="市场模块将在后续开放">市场</a>
+          <a href="#" data-coming-soon="选股模块正在重构中">选股</a>
+          <a href="articles.html" class="active">文章</a>
+          <a href="#" data-coming-soon="AI问答模块将在后续开放">AI问答</a>
+        </nav>
+
+        <div class="header-actions">
+          <button id="commandPaletteHint" class="search-hint" type="button">返回文章列表更快查找 <span>⌘K</span></button>
+          <button class="login-btn" type="button" data-coming-soon="登录功能将在后续接入">登录</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="detail-page">
+      <article class="container detail-wrap" id="articleDetail">
+        <a class="back-link" href="articles.html">← 返回文章列表</a>
+        <h1 id="detailTitle">加载中...</h1>
+
+        <div class="detail-meta-row">
+          <span class="meta-pill" id="detailDate">日期：-</span>
+          <span class="meta-pill" id="detailSeries">系列：-</span>
+          <span class="meta-pill" id="detailStatus">状态：-</span>
+        </div>
+
+        <div class="chip-placeholder-row" id="detailTags"></div>
+        <div class="chip-placeholder-row" id="detailIndustries"></div>
+        <div class="chip-placeholder-row" id="detailStocks"></div>
+
+        <div id="detailCover" class="detail-cover-placeholder">封面图：暂无</div>
+
+        <section class="detail-content" id="detailContent">
+          <p>正在加载文章正文...</p>
+        </section>
+      </article>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
