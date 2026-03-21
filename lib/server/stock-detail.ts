@@ -87,23 +87,75 @@ export async function getStockDetail(code: string): Promise<StockDetailPayload> 
     };
   }
 
-  const pool = getServerDbPool();
-  const bareCode = stock.code.split(".")[0] || stock.code;
+  try {
+    const pool = getServerDbPool();
+    const bareCode = stock.code.split(".")[0] || stock.code;
 
-  const [securityResult, reportsResult, timelineResult, announcementsResult] = await Promise.all([
-    pool.query<SecurityRow>(
-      `
-        select symbol, name, exchange, board, industry_name, listed_at::text, listing_status, latest_snapshot_at::text
-        from public.stock_securities
-        where symbol = $1 or code = $2
-        order by case when symbol = $1 then 0 else 1 end
-        limit 1
-      `,
-      [stock.code, bareCode]
-    ),
-    pool.query<ReportRow>(
-      `
-        with ranked as (
+    const [securityResult, reportsResult, timelineResult, announcementsResult] = await Promise.all([
+      pool.query<SecurityRow>(
+        `
+          select symbol, name, exchange, board, industry_name, listed_at::text, listing_status, latest_snapshot_at::text
+          from public.stock_securities
+          where symbol = $1 or code = $2
+          order by case when symbol = $1 then 0 else 1 end
+          limit 1
+        `,
+        [stock.code, bareCode]
+      ),
+      pool.query<ReportRow>(
+        `
+          with ranked as (
+            select
+              report_kind,
+              report_date::text,
+              report_label,
+              notice_date::text,
+              industry_name,
+              market_board,
+              eps,
+              bps,
+              revenue,
+              revenue_yoy,
+              net_profit,
+              net_profit_yoy,
+              roe_weighted,
+              gross_margin,
+              predicted_change_text,
+              predicted_change_percent,
+              forecast_type,
+              row_number() over (
+                partition by report_kind
+                order by report_date desc, notice_date desc nulls last, id desc
+              ) as rn
+            from public.stock_financial_reports
+            where symbol = $1 or stock_code = $2
+          )
+          select
+            report_kind,
+            report_date,
+            report_label,
+            notice_date,
+            industry_name,
+            market_board,
+            eps,
+            bps,
+            revenue,
+            revenue_yoy,
+            net_profit,
+            net_profit_yoy,
+            roe_weighted,
+            gross_margin,
+            predicted_change_text,
+            predicted_change_percent,
+            forecast_type
+          from ranked
+          where rn = 1
+          order by report_date desc, notice_date desc nulls last
+        `,
+        [stock.code, bareCode]
+      ),
+      pool.query<ReportRow>(
+        `
           select
             report_kind,
             report_date::text,
@@ -121,105 +173,67 @@ export async function getStockDetail(code: string): Promise<StockDetailPayload> 
             gross_margin,
             predicted_change_text,
             predicted_change_percent,
-            forecast_type,
-            row_number() over (
-              partition by report_kind
-              order by report_date desc, notice_date desc nulls last, id desc
-            ) as rn
+            forecast_type
           from public.stock_financial_reports
           where symbol = $1 or stock_code = $2
-        )
-        select
-          report_kind,
-          report_date,
-          report_label,
-          notice_date,
-          industry_name,
-          market_board,
-          eps,
-          bps,
-          revenue,
-          revenue_yoy,
-          net_profit,
-          net_profit_yoy,
-          roe_weighted,
-          gross_margin,
-          predicted_change_text,
-          predicted_change_percent,
-          forecast_type
-        from ranked
-        where rn = 1
-        order by report_date desc, notice_date desc nulls last
-      `,
-      [stock.code, bareCode]
-    ),
-    pool.query<ReportRow>(
-      `
-        select
-          report_kind,
-          report_date::text,
-          report_label,
-          notice_date::text,
-          industry_name,
-          market_board,
-          eps,
-          bps,
-          revenue,
-          revenue_yoy,
-          net_profit,
-          net_profit_yoy,
-          roe_weighted,
-          gross_margin,
-          predicted_change_text,
-          predicted_change_percent,
-          forecast_type
-        from public.stock_financial_reports
-        where symbol = $1 or stock_code = $2
-        order by
-          report_date desc,
-          notice_date desc nulls last,
-          case report_kind when 'yjbb' then 0 when 'yjkb' then 1 else 2 end,
-          id desc
-        limit 12
-      `,
-      [stock.code, bareCode]
-    ),
-    pool.query<AnnouncementRow>(
-      `
-        select
-          a.id,
-          a.title,
-          a.announcement_type,
-          a.notice_date::text,
-          a.display_time::text,
-          a.detail_url,
-          a.pdf_url,
-          a.page_count,
-          a.content_text,
-          count(f.id) as file_count
-        from public.stock_announcements a
-        left join public.stock_announcement_files f on f.announcement_id = a.id
-        where a.symbol = $1 or a.stock_code = $2
-        group by a.id
-        order by a.notice_date desc, a.display_time desc nulls last, a.id desc
-        limit 8
-      `,
-      [stock.code, bareCode]
-    )
-  ]);
+          order by
+            report_date desc,
+            notice_date desc nulls last,
+            case report_kind when 'yjbb' then 0 when 'yjkb' then 1 else 2 end,
+            id desc
+          limit 12
+        `,
+        [stock.code, bareCode]
+      ),
+      pool.query<AnnouncementRow>(
+        `
+          select
+            a.id,
+            a.title,
+            a.announcement_type,
+            a.notice_date::text,
+            a.display_time::text,
+            a.detail_url,
+            a.pdf_url,
+            a.page_count,
+            a.content_text,
+            count(f.id) as file_count
+          from public.stock_announcements a
+          left join public.stock_announcement_files f on f.announcement_id = a.id
+          where a.symbol = $1 or a.stock_code = $2
+          group by a.id
+          order by a.notice_date desc, a.display_time desc nulls last, a.id desc
+          limit 8
+        `,
+        [stock.code, bareCode]
+      )
+    ]);
 
-  const security = securityResult.rows[0];
-  const payload: StockDetailPayload = {
-    ok: true,
-    code: stock.code,
-    stock: security ? mapSecurityRow(stock.code, security) : mapFallbackStock(stock),
-    latestReports: reportsResult.rows.map(mapReportRow),
-    reportTimeline: timelineResult.rows.map(mapReportRow),
-    recentAnnouncements: announcementsResult.rows.map(mapAnnouncementRow)
-  };
+    const security = securityResult.rows[0];
+    const payload: StockDetailPayload = {
+      ok: true,
+      code: stock.code,
+      stock: security ? mapSecurityRow(stock.code, security) : mapFallbackStock(stock),
+      latestReports: reportsResult.rows.map(mapReportRow),
+      reportTimeline: timelineResult.rows.map(mapReportRow),
+      recentAnnouncements: announcementsResult.rows.map(mapAnnouncementRow)
+    };
 
-  detailCache.set(normalizedCode, { at: Date.now(), payload });
-  return payload;
+    detailCache.set(normalizedCode, { at: Date.now(), payload });
+    return payload;
+  } catch (error) {
+    console.warn("[stock-detail] database unavailable, using static fallback detail", error);
+    const payload: StockDetailPayload = {
+      ok: true,
+      code: stock.code,
+      stock: mapFallbackStock(stock),
+      latestReports: [],
+      reportTimeline: [],
+      recentAnnouncements: []
+    };
+    detailCache.set(normalizedCode, { at: Date.now(), payload });
+    return payload;
+  }
 }
 
 function mapSecurityRow(code: string, row: SecurityRow): StockDetailSnapshot {

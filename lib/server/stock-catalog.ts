@@ -1,4 +1,5 @@
 import { getServerDbPool } from "@/lib/server/db";
+import { STOCKS_DATA as STOCKS_DATA_FALLBACK } from "@/lib/stocks";
 import { STOCK_MENTION_STATS, scoreFromMention, type StockItem } from "@/lib/stocks-meta";
 
 type DbStockRow = {
@@ -23,7 +24,7 @@ type DbStockRow = {
 
 type CatalogCacheEntry = {
   at: number;
-  source: "db";
+  source: "db" | "fallback";
   stocks: StockItem[];
 };
 
@@ -185,62 +186,71 @@ async function getCatalogEntry(): Promise<CatalogCacheEntry> {
 }
 
 async function queryCatalogFromDb(): Promise<CatalogCacheEntry> {
-  const pool = getServerDbPool();
-  const result = await pool.query<DbStockRow>(
-    `
-      select
-        s.symbol,
-        s.code,
-        s.name,
-        s.exchange,
-        s.board,
-        s.industry_name,
-        s.latest_price,
-        s.dynamic_pe,
-        s.pb_ratio,
-        s.dividend_yield,
-        s.total_market_cap,
-        fr.latest_report_date,
-        fr.latest_report_kind,
-        fr.latest_revenue_yoy,
-        fr.latest_net_profit_yoy,
-        fr.latest_roe_weighted,
-        fr.latest_gross_margin
-      from public.stock_securities s
-      left join lateral (
+  try {
+    const pool = getServerDbPool();
+    const result = await pool.query<DbStockRow>(
+      `
         select
-          report_date::text as latest_report_date,
-          report_kind as latest_report_kind,
-          revenue_yoy as latest_revenue_yoy,
-          net_profit_yoy as latest_net_profit_yoy,
-          roe_weighted as latest_roe_weighted,
-          gross_margin as latest_gross_margin
-        from public.stock_financial_reports fr
-        where fr.stock_code = s.code
-          and (
-            fr.revenue_yoy is not null
-            or fr.net_profit_yoy is not null
-            or fr.roe_weighted is not null
-            or fr.gross_margin is not null
-          )
-        order by
-          fr.report_date desc,
-          fr.notice_date desc nulls last,
-          case fr.report_kind when 'yjbb' then 0 when 'yjkb' then 1 else 2 end,
-          fr.id desc
-        limit 1
-      ) fr on true
-      where s.is_active = true
-        and s.exchange in ('SH', 'SZ', 'BJ')
-      order by s.exchange asc, s.code asc
-    `
-  );
+          s.symbol,
+          s.code,
+          s.name,
+          s.exchange,
+          s.board,
+          s.industry_name,
+          s.latest_price,
+          s.dynamic_pe,
+          s.pb_ratio,
+          s.dividend_yield,
+          s.total_market_cap,
+          fr.latest_report_date,
+          fr.latest_report_kind,
+          fr.latest_revenue_yoy,
+          fr.latest_net_profit_yoy,
+          fr.latest_roe_weighted,
+          fr.latest_gross_margin
+        from public.stock_securities s
+        left join lateral (
+          select
+            report_date::text as latest_report_date,
+            report_kind as latest_report_kind,
+            revenue_yoy as latest_revenue_yoy,
+            net_profit_yoy as latest_net_profit_yoy,
+            roe_weighted as latest_roe_weighted,
+            gross_margin as latest_gross_margin
+          from public.stock_financial_reports fr
+          where fr.stock_code = s.code
+            and (
+              fr.revenue_yoy is not null
+              or fr.net_profit_yoy is not null
+              or fr.roe_weighted is not null
+              or fr.gross_margin is not null
+            )
+          order by
+            fr.report_date desc,
+            fr.notice_date desc nulls last,
+            case fr.report_kind when 'yjbb' then 0 when 'yjkb' then 1 else 2 end,
+            fr.id desc
+          limit 1
+        ) fr on true
+        where s.is_active = true
+          and s.exchange in ('SH', 'SZ', 'BJ')
+        order by s.exchange asc, s.code asc
+      `
+    );
 
-  return {
-    at: Date.now(),
-    source: "db",
-    stocks: result.rows.map(mapDbRowToStockItem)
-  };
+    return {
+      at: Date.now(),
+      source: "db",
+      stocks: result.rows.map(mapDbRowToStockItem)
+    };
+  } catch (error) {
+    console.warn("[stock-catalog] database unavailable, using static fallback catalog", error);
+    return {
+      at: Date.now(),
+      source: "fallback",
+      stocks: STOCKS_DATA_FALLBACK.map((stock) => ({ ...stock }))
+    };
+  }
 }
 
 function mapDbRowToStockItem(row: DbStockRow): StockItem {
