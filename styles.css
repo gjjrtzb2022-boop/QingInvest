@@ -782,35 +782,27 @@ select {
   animation: ornament-sway-right 3.2s ease-in-out infinite;
 }
 
-.yuanxiao-ornament {
+.stock-index-ornament {
   width: 84px;
   height: 84px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 50%, #ffe7a2 0 17px, transparent 18px),
-    conic-gradient(
-      from 8deg,
-      #f3c74c 0 12%,
-      #f4a6ae 12% 24%,
-      #f3c74c 24% 36%,
-      #f4a6ae 36% 48%,
-      #f3c74c 48% 60%,
-      #f4a6ae 60% 72%,
-      #f3c74c 72% 84%,
-      #f4a6ae 84% 100%
-    );
-  border: 3px solid #d24a55;
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95) 0 18px, transparent 19px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(235, 248, 238, 0.98)),
+    radial-gradient(circle at 22% 20%, rgba(255, 255, 255, 0.82), transparent 35%);
+  border: 3px solid #2eae69;
   position: relative;
   display: grid;
   place-items: center;
+  overflow: hidden;
   box-shadow:
-    inset 0 -8px 12px rgba(116, 22, 37, 0.24),
-    0 10px 22px rgba(180, 39, 72, 0.32),
-    0 0 16px rgba(255, 178, 96, 0.28);
+    inset 0 -10px 14px rgba(49, 103, 66, 0.16),
+    0 10px 22px rgba(53, 170, 100, 0.24),
+    0 0 16px rgba(122, 222, 159, 0.22);
   animation: ornament-glow 1.9s ease-in-out infinite;
 }
 
-.yuanxiao-ornament::before {
+.stock-index-ornament::before {
   content: "";
   position: absolute;
   left: 50%;
@@ -819,12 +811,12 @@ select {
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background: linear-gradient(180deg, #ff8795, #dd2e49);
-  border: 2px solid #c7223d;
-  box-shadow: 0 2px 6px rgba(166, 25, 49, 0.3);
+  background: linear-gradient(180deg, #74e09d, #169355);
+  border: 2px solid #0f7a46;
+  box-shadow: 0 2px 6px rgba(23, 117, 66, 0.24);
 }
 
-.yuanxiao-ornament::after {
+.stock-index-ornament::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -836,13 +828,20 @@ select {
   background: linear-gradient(180deg, #f5d37d, #cf9633);
 }
 
-.ornament-core {
-  color: #7f1b28;
-  font-size: 1.48rem;
-  font-weight: 780;
+.stock-index-badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 3;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1aa45f, #117947);
+  padding: 3px 7px;
+  color: #f6fff9;
+  font-size: 0.69rem;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: 0.08em;
-  text-shadow: 0 1px 3px rgba(122, 40, 10, 0.28);
+  box-shadow: 0 4px 10px rgba(18, 113, 66, 0.2);
 }
 
 .ornament-tassel {
@@ -853,8 +852,59 @@ select {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ff95a3, #d8344a);
-  box-shadow: 0 11px 0 0 #d6384d, 0 22px 0 0 #c82f44;
+  background: radial-gradient(circle at 35% 30%, #7fe4a1, #1aa25e);
+  box-shadow: 0 11px 0 0 #1a9a5a, 0 22px 0 0 #17864f;
+}
+
+.stock-index-bars {
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  z-index: 1;
+}
+
+.stock-index-bars i {
+  display: block;
+  width: 8px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, rgba(110, 229, 154, 0.18), rgba(39, 170, 94, 0.48));
+  border: 1px solid rgba(26, 141, 76, 0.16);
+}
+
+.stock-index-bars i:nth-child(1) {
+  height: 16px;
+}
+
+.stock-index-bars i:nth-child(2) {
+  height: 24px;
+}
+
+.stock-index-bars i:nth-child(3) {
+  height: 32px;
+}
+
+.stock-index-line {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.stock-index-line svg {
+  width: 100%;
+  height: 100%;
+}
+
+.stock-index-line path {
+  fill: none;
+  stroke: #169153;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 3px rgba(22, 145, 83, 0.16));
 }
 
 @keyframes ornament-sway-left {
