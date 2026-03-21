@@ -578,7 +578,7 @@ async function fetchOfficialUniverseFallback() {
   const scriptPath = `${process.cwd()}/tools/fetch-official-stock-universe.py`;
   const { stdout } = await execFileAsync("python3", [scriptPath], {
     timeout: 120_000,
-    maxBuffer: 8 * 1024 * 1024
+    maxBuffer: 64 * 1024 * 1024
   });
   const payload = JSON.parse((stdout || "").trim());
   if (!payload?.ok) {
