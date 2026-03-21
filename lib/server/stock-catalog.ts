@@ -1,4 +1,5 @@
 import { getServerDbPool } from "@/lib/server/db";
+import { mergeSupplementalMarketItems } from "@/lib/market-supplements";
 import { STOCKS_DATA as STOCKS_DATA_FALLBACK } from "@/lib/stocks";
 import { STOCK_MENTION_STATS, scoreFromMention, type StockItem } from "@/lib/stocks-meta";
 
@@ -241,14 +242,14 @@ async function queryCatalogFromDb(): Promise<CatalogCacheEntry> {
     return {
       at: Date.now(),
       source: "db",
-      stocks: result.rows.map(mapDbRowToStockItem)
+      stocks: mergeSupplementalMarketItems(result.rows.map(mapDbRowToStockItem))
     };
   } catch (error) {
     console.warn("[stock-catalog] database unavailable, using static fallback catalog", error);
     return {
       at: Date.now(),
       source: "fallback",
-      stocks: STOCKS_DATA_FALLBACK.map((stock) => ({ ...stock }))
+      stocks: mergeSupplementalMarketItems(STOCKS_DATA_FALLBACK.map((stock) => ({ ...stock })))
     };
   }
 }
