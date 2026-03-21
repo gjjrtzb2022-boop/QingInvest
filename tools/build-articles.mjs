@@ -5,7 +5,7 @@ const rootDir = path.resolve(process.cwd());
 const articlesDir = path.join(rootDir, "content", "articles");
 const indexPath = path.join(articlesDir, "index.json");
 
-const REQUIRED_FIELDS = ["title", "date"];
+const REQUIRED_FIELDS = ["slug", "title", "date"];
 
 function stripQuotes(value) {
   const trimmed = value.trim();
@@ -100,7 +100,7 @@ async function build() {
     const source = await fs.readFile(filePath, "utf8");
     const { meta, body } = parseFrontMatter(source);
 
-    const slug = meta.slug || fileName.replace(/\.md$/, "");
+    const slug = meta.slug;
     for (const field of REQUIRED_FIELDS) {
       if (!meta[field]) {
         throw new Error(`Missing required field \"${field}\" in ${fileName}`);
@@ -111,7 +111,7 @@ async function build() {
       slug,
       title: meta.title,
       date: meta.date,
-      series: meta.series || "未分类系列",
+      series: meta.series || "未分类专题",
       category: meta.category || "未分类",
       status: meta.status || "unread",
       tags: ensureArray(meta.tags),
@@ -119,7 +119,9 @@ async function build() {
       stocks: ensureArray(meta.stocks),
       cover: meta.cover || "",
       summary: createSummary(body, meta.summary),
-      path: `content/articles/${fileName}`
+      path: `content/articles/${fileName}`,
+      sourcePath: meta.source_path || meta.sourcePath || "",
+      placeholderStatus: meta.placeholder_status || meta.placeholderStatus || "none"
     });
   }
 

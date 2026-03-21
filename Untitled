@@ -1,3 +1,0 @@
-cd /Users/jianyuanchen/Desktop/Stock_Test
-node tools/build-articles.mjs
-python3 -m http.server 5173

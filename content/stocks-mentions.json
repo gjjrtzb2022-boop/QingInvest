@@ -1,0 +1,304 @@
+{
+  "generatedAt": "2026-03-19T14:04:24.387Z",
+  "method": "frontmatter+title+summary+body-token-match",
+  "corpus": {
+    "allArticleCount": 860,
+    "publishedArticleCount": 860
+  },
+  "stats": {
+    "601899.SH": {
+      "mentionCount": 2,
+      "lastMentionDate": "2022-06-27",
+      "publishedMentionCount": 2,
+      "publishedLastMentionDate": "2022-06-27"
+    },
+    "000960.SZ": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "600989.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "002170.SZ": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "000792.SZ": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "600096.SH": {
+      "mentionCount": 1,
+      "lastMentionDate": "2023-06-09",
+      "publishedMentionCount": 1,
+      "publishedLastMentionDate": "2023-06-09"
+    },
+    "688525.SH": {
+      "mentionCount": 2,
+      "lastMentionDate": "2022-06-29",
+      "publishedMentionCount": 2,
+      "publishedLastMentionDate": "2022-06-29"
+    },
+    "605599.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "603233.SH": {
+      "mentionCount": 3,
+      "lastMentionDate": "2023-02-13",
+      "publishedMentionCount": 3,
+      "publishedLastMentionDate": "2023-02-13"
+    },
+    "600219.SH": {
+      "mentionCount": 8,
+      "lastMentionDate": "2023-11-26",
+      "publishedMentionCount": 8,
+      "publishedLastMentionDate": "2023-11-26"
+    },
+    "002749.SZ": {
+      "mentionCount": 5,
+      "lastMentionDate": "2022-11-03",
+      "publishedMentionCount": 5,
+      "publishedLastMentionDate": "2022-11-03"
+    },
+    "600015.SH": {
+      "mentionCount": 29,
+      "lastMentionDate": "2025-01-05",
+      "publishedMentionCount": 29,
+      "publishedLastMentionDate": "2025-01-05"
+    },
+    "688027.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "603199.SH": {
+      "mentionCount": 1,
+      "lastMentionDate": "2023-03-16",
+      "publishedMentionCount": 1,
+      "publishedLastMentionDate": "2023-03-16"
+    },
+    "600519.SH": {
+      "mentionCount": 26,
+      "lastMentionDate": "2026-02-09",
+      "publishedMentionCount": 26,
+      "publishedLastMentionDate": "2026-02-09"
+    },
+    "601168.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "000651.SZ": {
+      "mentionCount": 25,
+      "lastMentionDate": "2026-02-15",
+      "publishedMentionCount": 25,
+      "publishedLastMentionDate": "2026-02-15"
+    },
+    "601009.SH": {
+      "mentionCount": 1,
+      "lastMentionDate": "2024-08-28",
+      "publishedMentionCount": 1,
+      "publishedLastMentionDate": "2024-08-28"
+    },
+    "688256.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "600036.SH": {
+      "mentionCount": 41,
+      "lastMentionDate": "2024-12-25",
+      "publishedMentionCount": 41,
+      "publishedLastMentionDate": "2024-12-25"
+    },
+    "601838.SH": {
+      "mentionCount": 1,
+      "lastMentionDate": "2024-08-28",
+      "publishedMentionCount": 1,
+      "publishedLastMentionDate": "2024-08-28"
+    },
+    "600016.SH": {
+      "mentionCount": 42,
+      "lastMentionDate": "2025-06-10",
+      "publishedMentionCount": 42,
+      "publishedLastMentionDate": "2025-06-10"
+    },
+    "601229.SH": {
+      "mentionCount": 3,
+      "lastMentionDate": "2026-02-18",
+      "publishedMentionCount": 3,
+      "publishedLastMentionDate": "2026-02-18"
+    },
+    "601288.SH": {
+      "mentionCount": 24,
+      "lastMentionDate": "2023-09-28",
+      "publishedMentionCount": 24,
+      "publishedLastMentionDate": "2023-09-28"
+    },
+    "000858.SZ": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "601088.SH": {
+      "mentionCount": 9,
+      "lastMentionDate": "2025-06-02",
+      "publishedMentionCount": 9,
+      "publishedLastMentionDate": "2025-06-02"
+    },
+    "000002.SZ": {
+      "mentionCount": 22,
+      "lastMentionDate": "2025-06-04",
+      "publishedMentionCount": 22,
+      "publishedLastMentionDate": "2025-06-04"
+    },
+    "300059.SZ": {
+      "mentionCount": 2,
+      "lastMentionDate": "2025-11-20",
+      "publishedMentionCount": 2,
+      "publishedLastMentionDate": "2025-11-20"
+    },
+    "601198.SH": {
+      "mentionCount": 4,
+      "lastMentionDate": "2022-12-27",
+      "publishedMentionCount": 4,
+      "publishedLastMentionDate": "2022-12-27"
+    },
+    "601059.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "920371.BJ": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "920599.BJ": {
+      "mentionCount": 2,
+      "lastMentionDate": "2022-10-01",
+      "publishedMentionCount": 2,
+      "publishedLastMentionDate": "2022-10-01"
+    },
+    "603517.SH": {
+      "mentionCount": 0,
+      "lastMentionDate": "",
+      "publishedMentionCount": 0,
+      "publishedLastMentionDate": ""
+    },
+    "000932.SZ": {
+      "mentionCount": 42,
+      "lastMentionDate": "2025-09-24",
+      "publishedMentionCount": 42,
+      "publishedLastMentionDate": "2025-09-24"
+    },
+    "601668.SH": {
+      "mentionCount": 274,
+      "lastMentionDate": "2026-02-25",
+      "publishedMentionCount": 274,
+      "publishedLastMentionDate": "2026-02-25"
+    },
+    "601958.SH": {
+      "mentionCount": 27,
+      "lastMentionDate": "2026-02-10",
+      "publishedMentionCount": 27,
+      "publishedLastMentionDate": "2026-02-10"
+    },
+    "002532.SZ": {
+      "mentionCount": 23,
+      "lastMentionDate": "2026-02-15",
+      "publishedMentionCount": 23,
+      "publishedLastMentionDate": "2026-02-15"
+    },
+    "600737.SH": {
+      "mentionCount": 26,
+      "lastMentionDate": "2026-01-18",
+      "publishedMentionCount": 26,
+      "publishedLastMentionDate": "2026-01-18"
+    },
+    "002461.SZ": {
+      "mentionCount": 178,
+      "lastMentionDate": "2026-02-01",
+      "publishedMentionCount": 178,
+      "publishedLastMentionDate": "2026-02-01"
+    },
+    "600573.SH": {
+      "mentionCount": 298,
+      "lastMentionDate": "2026-01-29",
+      "publishedMentionCount": 298,
+      "publishedLastMentionDate": "2026-01-29"
+    },
+    "000729.SZ": {
+      "mentionCount": 388,
+      "lastMentionDate": "2026-02-12",
+      "publishedMentionCount": 388,
+      "publishedLastMentionDate": "2026-02-12"
+    },
+    "00390.HK": {
+      "mentionCount": 41,
+      "lastMentionDate": "2025-11-16",
+      "publishedMentionCount": 41,
+      "publishedLastMentionDate": "2025-11-16"
+    },
+    "01618.HK": {
+      "mentionCount": 25,
+      "lastMentionDate": "2026-01-25",
+      "publishedMentionCount": 25,
+      "publishedLastMentionDate": "2026-01-25"
+    },
+    "601618.SH": {
+      "mentionCount": 23,
+      "lastMentionDate": "2026-01-25",
+      "publishedMentionCount": 23,
+      "publishedLastMentionDate": "2026-01-25"
+    },
+    "601390.SH": {
+      "mentionCount": 41,
+      "lastMentionDate": "2025-11-16",
+      "publishedMentionCount": 41,
+      "publishedLastMentionDate": "2025-11-16"
+    },
+    "601166.SH": {
+      "mentionCount": 76,
+      "lastMentionDate": "2026-02-15",
+      "publishedMentionCount": 76,
+      "publishedLastMentionDate": "2026-02-15"
+    },
+    "600251.SH": {
+      "mentionCount": 36,
+      "lastMentionDate": "2026-02-10",
+      "publishedMentionCount": 36,
+      "publishedLastMentionDate": "2026-02-10"
+    },
+    "000060.SZ": {
+      "mentionCount": 17,
+      "lastMentionDate": "2026-02-25",
+      "publishedMentionCount": 17,
+      "publishedLastMentionDate": "2026-02-25"
+    },
+    "000630.SZ": {
+      "mentionCount": 19,
+      "lastMentionDate": "2026-02-25",
+      "publishedMentionCount": 19,
+      "publishedLastMentionDate": "2026-02-25"
+    }
+  }
+}

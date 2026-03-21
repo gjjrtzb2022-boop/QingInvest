@@ -1,24 +1,37 @@
-name: Deploy GitHub Pages
+name: CI Checks
 
 on:
   push:
     branches:
       - main
       - master
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: github-pages
+  group: ci-checks
   cancel-in-progress: true
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,37 +39,41 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: "npm"
 
-      - name: Build article index
-        run: node tools/build-articles.mjs
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Prepare static site
-        run: |
-          mkdir -p _site
-          cp index.html articles.html article.html styles.css app.js _site/
-          if [ -f article-qingyishanzhang-2026-001.html ]; then
-            cp article-qingyishanzhang-2026-001.html _site/
-          fi
-          cp -R content _site/content
+      - name: Check environment (dev target)
+        env:
+          ARTICLE_SOURCE: github
+          ARTICLE_GITHUB_OWNER: gjjrtzb2022-boop
+          ARTICLE_GITHUB_REPO: qinginvest-articles
+        run: npm run check:env -- --target=dev
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - name: Check DB migrations and rollback rehearsal
+        env:
+          MIGRATION_CHECK_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres
+        run: npm run check:migrations
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
+      - name: Verify RLS isolation rules
+        env:
+          RLS_CHECK_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres
+        run: npm run verify:rls
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Validate local article directory shape
+        run: npm run validate:articles
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build production bundle
+        env:
+          ARTICLE_SOURCE: github
+          ARTICLE_GITHUB_OWNER: gjjrtzb2022-boop
+          ARTICLE_GITHUB_REPO: qinginvest-articles
+        run: npm run build
