@@ -685,6 +685,30 @@ export function StocksCenter({
         {mode === "workbench" ? (
         <section className="stocks-workbench-layout">
           <aside className="stocks-sidebar">
+            <div className="stocks-sidebar-intro">
+              <div>
+                <p className="stocks-sidebar-kicker">股票工作台</p>
+                <h2>按参考站的层级重组为三栏导航</h2>
+              </div>
+              <div className="stocks-sidebar-stat-grid">
+                <article className="stocks-sidebar-stat-card">
+                  <span>推荐池</span>
+                  <strong>{recommendedStocks.length}</strong>
+                  <p>山长优先关注</p>
+                </article>
+                <article className="stocks-sidebar-stat-card">
+                  <span>全库</span>
+                  <strong>{catalogTotal || stocksWithLive.length}</strong>
+                  <p>含股票 / 指数 / ETF</p>
+                </article>
+                <article className="stocks-sidebar-stat-card">
+                  <span>实时源</span>
+                  <strong>{formatLiveSource(liveStatusSource)}</strong>
+                  <p>{liveError ? "当前异常" : `更新 ${formatClock(liveUpdatedAt)}`}</p>
+                </article>
+              </div>
+            </div>
+
             <div className="stocks-sidebar-search search-shell">
               <span className="search-shell-icon" aria-hidden="true">
                 ⌕
@@ -698,28 +722,32 @@ export function StocksCenter({
 
             <StockSection
               title="山长推荐"
-              badge={`当前 ${recommendedStocks.length} 只`}
-              description="基于提及频次、关注度和财务快照的推荐清单。"
+              badge={`${recommendedStocks.length} 只`}
+              description="优先展示山长重点提及、且当前可继续跟踪的标的。"
               items={recommendedStocks}
               activeCode={selectedStock?.code || ""}
               onSelect={setSelectedCode}
+              tone="featured"
             />
             <WatchlistPlaceholderCard />
-            <StockSection
-              title="全部股票"
-              badge={`第 ${Math.min(allStocksPage, totalAllStockPages)} / ${totalAllStockPages} 页`}
-              description="浏览区不含推荐股票，便于单独检索全库。"
-              items={displayedAllStocks}
-              activeCode={selectedStock?.code || ""}
-              onSelect={setSelectedCode}
-              compact
-            />
-            <PagerRow
-              page={Math.min(allStocksPage, totalAllStockPages)}
-              totalPages={totalAllStockPages}
-              onPageChange={setAllStocksPage}
-              summary={`共 ${allBrowseStocks.length} 只`}
-            />
+            <section className="stock-section-shell">
+              <StockSection
+                title="全部"
+                badge={`${allBrowseStocks.length} 只`}
+                description="其余标的统一归入这里，支持代码、关键词和拼音检索。"
+                items={displayedAllStocks}
+                activeCode={selectedStock?.code || ""}
+                onSelect={setSelectedCode}
+                compact
+                tone="neutral"
+              />
+              <PagerRow
+                page={Math.min(allStocksPage, totalAllStockPages)}
+                totalPages={totalAllStockPages}
+                onPageChange={setAllStocksPage}
+                summary={`第 ${Math.min(allStocksPage, totalAllStockPages)} / ${totalAllStockPages} 页`}
+              />
+            </section>
           </aside>
 
           <div className="stocks-main-panel">
@@ -729,37 +757,47 @@ export function StocksCenter({
               </div>
             ) : (
               <>
-                <div className="stocks-main-header">
-                  <div>
-                    <h2>{selectedStock.name}</h2>
-                    <p>
-                      <span className="code">{selectedStock.code}</span>
-                      <span className="market">{selectedStock.market}</span>
-                      <span className="industry">{selectedStock.industry}</span>
-                    </p>
+                <section className="stocks-main-overview">
+                  <div className="stocks-main-header">
+                    <div>
+                      <p className="stocks-main-kicker">股票概览</p>
+                      <h2>{selectedStock.name}</h2>
+                      <p>
+                        <span className="code">{selectedStock.code}</span>
+                        <span className="market">{selectedStock.market}</span>
+                        <span className="industry">{selectedStock.industry}</span>
+                      </p>
+                    </div>
+                    <div className="stocks-price-box">
+                      <p className="label">最新价</p>
+                      <p className="price">{formatPrice(selectedStock.latestPrice)}</p>
+                      <p className={`change ${selectedChangePercent >= 0 ? "up" : "down"}`}>
+                        {formatSignedPercent(selectedChangePercent)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="stocks-price-box">
-                    <p className="label">最新价</p>
-                    <p className="price">{formatPrice(selectedStock.latestPrice)}</p>
-                    <p className={`change ${selectedChangePercent >= 0 ? "up" : "down"}`}>
-                      {formatSignedPercent(selectedChangePercent)}
-                    </p>
+
+                  <div className="stocks-overview-stat-grid">
+                    <OverviewStatCard label="全文库提及" value={`${selectedStock.mentionCount} 次`} />
+                    <OverviewStatCard label="站内已上线" value={`${selectedStock.publishedMentionCount} 次`} />
+                    <OverviewStatCard label="最近提及" value={formatDateLabel(selectedStock.lastMentionDate)} />
+                    <OverviewStatCard label="实时来源" value={liveError ? "连接异常" : formatLiveSource(liveStatusSource)} />
                   </div>
-                </div>
 
-                <div className="workbench-quick-row">
-                  <span className="quick-pill active">库提及 {selectedStock.mentionCount}</span>
-                  <span className="quick-pill">站内 {selectedStock.publishedMentionCount}</span>
-                  <span className="quick-pill">行业 {selectedStock.industry}</span>
-                  <span className="quick-pill">策略 {resolveStrategyLabel(selectedStock)}</span>
-                  <span className="quick-pill">分红 {formatPercent(selectedStock.latestDividendYield)}</span>
-                  <span className="quick-pill">营收同比 {formatRatioPercent(selectedStock.latestRevenueYoy ?? null)}</span>
-                  <span className="quick-pill">净利同比 {formatRatioPercent(selectedStock.latestNetProfitYoy ?? null)}</span>
-                  <span className="quick-pill">ROE {formatRatioPercent(selectedStock.latestRoe ?? null)}</span>
-                  {detailSnapshot?.board ? <span className="quick-pill">板块 {detailSnapshot.board}</span> : null}
-                </div>
+                  <div className="workbench-quick-row">
+                    <span className="quick-pill active">策略 {resolveStrategyLabel(selectedStock)}</span>
+                    <span className="quick-pill">行业 {selectedStock.industry}</span>
+                    <span className="quick-pill">分红 {formatPercent(selectedStock.latestDividendYield)}</span>
+                    <span className="quick-pill">营收同比 {formatRatioPercent(selectedStock.latestRevenueYoy ?? null)}</span>
+                    <span className="quick-pill">净利同比 {formatRatioPercent(selectedStock.latestNetProfitYoy ?? null)}</span>
+                    <span className="quick-pill">ROE {formatRatioPercent(selectedStock.latestRoe ?? null)}</span>
+                    {detailSnapshot?.board ? <span className="quick-pill">板块 {detailSnapshot.board}</span> : null}
+                  </div>
+                </section>
 
-                <StockKlinePanel stock={selectedStock} />
+                <section className="stocks-chart-shell">
+                  <StockKlinePanel stock={selectedStock} />
+                </section>
 
                 <div className="stocks-metric-grid">
                   <MetricCell label="市盈率 PE" value={formatNullable(selectedStock.latestPe, 2)} />
@@ -1133,7 +1171,8 @@ function StockSection({
   items,
   activeCode,
   onSelect,
-  compact
+  compact,
+  tone = "neutral"
 }: {
   title: string;
   badge: string;
@@ -1142,9 +1181,10 @@ function StockSection({
   activeCode: string;
   onSelect: (code: string) => void;
   compact?: boolean;
+  tone?: "featured" | "neutral";
 }) {
   return (
-    <section className={`stock-section-card ${compact ? "compact" : ""}`}>
+    <section className={`stock-section-card ${compact ? "compact" : ""} tone-${tone}`}>
       <header>
         <div>
           <h3>{title}</h3>
@@ -1163,11 +1203,13 @@ function StockSection({
             >
               <div className="stock-row-main">
                 <p>{item.name}</p>
-                <span>{item.code}</span>
+                <span>
+                  {item.code} · {item.industry}
+                </span>
               </div>
               <div className="stock-row-side">
-                <strong>{item.mentionCount}</strong>
-                <span>—</span>
+                <strong>{formatPrice(item.latestPrice)}</strong>
+                <span>{item.mentionCount} 次</span>
               </div>
             </button>
           ))
@@ -1181,7 +1223,7 @@ function StockSection({
 
 function WatchlistPlaceholderCard() {
   return (
-    <section className="stock-section-card stock-watchlist-card">
+    <section className="stock-section-card stock-watchlist-card tone-watchlist">
       <header>
         <div>
           <h3>自选</h3>
@@ -1360,6 +1402,15 @@ function MetricCell({ label, value }: { label: string; value: string }) {
   return (
     <article className="metric-cell">
       <p>{label}</p>
+      <strong>{value}</strong>
+    </article>
+  );
+}
+
+function OverviewStatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <article className="stocks-overview-stat-card">
+      <span>{label}</span>
       <strong>{value}</strong>
     </article>
   );

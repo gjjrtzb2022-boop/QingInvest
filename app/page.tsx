@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { UpdateLogBadge } from "@/components/home/update-log-badge";
+import { HeroMarketOrnaments } from "@/components/home/hero-market-ornaments";
 import { changelogEntries } from "@/content/changelog";
 
 const moduleCards = [
@@ -20,23 +21,7 @@ export default function HomePage() {
 
       <main>
         <section className="hero-section">
-          <div className="hero-deco left" aria-hidden="true">
-            <div className="stock-index-ornament trend">
-              <span className="stock-index-badge">涨</span>
-              <span className="stock-index-bars">
-                <i />
-                <i />
-                <i />
-              </span>
-              <span className="stock-index-line">
-                <svg viewBox="0 0 84 84" aria-hidden="true">
-                  <path d="M15 56 L31 47 L43 52 L59 34 L69 25" />
-                  <path d="M61 25 H69 V33" />
-                </svg>
-              </span>
-              <span className="ornament-tassel" />
-            </div>
-          </div>
+          <HeroMarketOrnaments />
 
           <div className="hero-content container">
             <h1>清一山长投资研究平台</h1>
@@ -56,24 +41,6 @@ export default function HomePage() {
             <p className="hero-note">当前技术栈：Next.js + TypeScript + Tailwind，保持原有视觉风格。</p>
 
             <UpdateLogBadge entries={changelogEntries} />
-          </div>
-
-          <div className="hero-deco right" aria-hidden="true">
-            <div className="stock-index-ornament breakout">
-              <span className="stock-index-badge">牛</span>
-              <span className="stock-index-candles">
-                <i />
-                <i />
-                <i />
-              </span>
-              <span className="stock-index-line">
-                <svg viewBox="0 0 84 84" aria-hidden="true">
-                  <path d="M13 54 L28 54 L28 47 L43 47 L43 37 L59 37 L59 24 L71 24" />
-                  <path d="M63 24 H71 V32" />
-                </svg>
-              </span>
-              <span className="ornament-tassel" />
-            </div>
           </div>
         </section>
 
