@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { pinyin } from "pinyin-pro";
 import { STOCK_MENTION_META, getIndustryList, scoreFromMention, type StockItem } from "@/lib/stocks-meta";
 import type { StockDetailAnnouncement, StockDetailPayload, StockDetailReport } from "@/lib/stocks-detail-types";
 import type { LiveQuote } from "@/lib/stocks-types";
@@ -54,6 +55,7 @@ const DATE_OPTIONS = [
 const SCREENING_STRATEGIES = ["高股息", "低波动", "高确定性", "低估值", "现金流"] as const;
 const LIVE_POLL_INTERVAL_MS = 1_000;
 const CATALOG_FETCH_LIMIT = 6_000;
+const RECOMMENDED_LIST_LIMIT = 12;
 const WORKBENCH_ALL_STOCKS_PAGE_SIZE = 28;
 const SCREENER_TABLE_PAGE_SIZE = 40;
 const stockDetailCache = new Map<string, StockDetailPayload>();
@@ -172,15 +174,23 @@ export function StocksCenter({
     [catalogStocks, liveQuotes]
   );
 
+  const searchableStocks = useMemo(
+    () =>
+      stocksWithLive.map((stock) => ({
+        stock,
+        searchBlob: buildStockSearchBlob(stock)
+      })),
+    [stocksWithLive]
+  );
+
   const visibleStocks = useMemo(() => {
-    const keyword = searchKeyword.trim().toLowerCase();
+    const keyword = normalizeSearchKeyword(searchKeyword);
     if (!keyword) return stocksWithLive;
 
-    return stocksWithLive.filter((stock) => {
-      const pool = [stock.code, stock.name, stock.industry, ...stock.aliases].join(" ").toLowerCase();
-      return pool.includes(keyword);
-    });
-  }, [searchKeyword, stocksWithLive]);
+    return searchableStocks
+      .filter((entry) => entry.searchBlob.includes(keyword))
+      .map((entry) => entry.stock);
+  }, [searchKeyword, searchableStocks, stocksWithLive]);
 
   const strictList = useMemo(
     () =>
@@ -205,35 +215,57 @@ export function StocksCenter({
     [visibleStocks]
   );
 
+  const recommendedStocks = useMemo(() => {
+    const bucket = new Map<string, StockItem>();
+    for (const item of strictList) {
+      if (!bucket.has(item.code)) bucket.set(item.code, item);
+    }
+    for (const item of qualityPool) {
+      if (!bucket.has(item.code)) bucket.set(item.code, item);
+    }
+    return [...bucket.values()]
+      .sort((a, b) => b.mentionCount - a.mentionCount || scoreFromMention(b) - scoreFromMention(a))
+      .slice(0, RECOMMENDED_LIST_LIMIT);
+  }, [qualityPool, strictList]);
+
+  const recommendedCodes = useMemo(() => new Set(recommendedStocks.map((item) => item.code)), [recommendedStocks]);
+
+  const allBrowseStocks = useMemo(
+    () => allStocks.filter((item) => !recommendedCodes.has(item.code)),
+    [allStocks, recommendedCodes]
+  );
+
   const selectedStock = useMemo(() => {
-    const fromQuery = stocksWithLive.find((item) => item.code === queryCode);
+    const fromQuery = visibleStocks.find((item) => item.code === queryCode);
     if (fromQuery) return fromQuery;
-    return strictList[0] || qualityPool[0] || allStocks[0] || null;
-  }, [allStocks, qualityPool, queryCode, stocksWithLive, strictList]);
+    return recommendedStocks[0] || allBrowseStocks[0] || allStocks[0] || null;
+  }, [allBrowseStocks, allStocks, queryCode, recommendedStocks, visibleStocks]);
 
   const industries = useMemo(() => getIndustryList(stocksWithLive), [stocksWithLive]);
 
-  const totalAllStockPages = Math.max(1, Math.ceil(allStocks.length / WORKBENCH_ALL_STOCKS_PAGE_SIZE));
+  const totalAllStockPages = Math.max(1, Math.ceil(allBrowseStocks.length / WORKBENCH_ALL_STOCKS_PAGE_SIZE));
 
   const displayedAllStocks = useMemo(() => {
     const currentPage = Math.min(allStocksPage, totalAllStockPages);
     const start = (currentPage - 1) * WORKBENCH_ALL_STOCKS_PAGE_SIZE;
-    const base = allStocks.slice(start, start + WORKBENCH_ALL_STOCKS_PAGE_SIZE);
+    const base = allBrowseStocks.slice(start, start + WORKBENCH_ALL_STOCKS_PAGE_SIZE);
     if (selectedStock && !base.some((item) => item.code === selectedStock.code)) {
-      return [selectedStock, ...base.slice(0, Math.max(WORKBENCH_ALL_STOCKS_PAGE_SIZE - 1, 0))];
+      if (!recommendedCodes.has(selectedStock.code)) {
+        return [selectedStock, ...base.slice(0, Math.max(WORKBENCH_ALL_STOCKS_PAGE_SIZE - 1, 0))];
+      }
     }
     return base;
-  }, [allStocks, allStocksPage, selectedStock, totalAllStockPages]);
+  }, [allBrowseStocks, allStocksPage, recommendedCodes, selectedStock, totalAllStockPages]);
 
   const topSummary = useMemo(() => {
     const pulse = hash(selectedDate);
     return {
-      strictCount: strictList.length,
+      recommendedCount: recommendedStocks.length,
       watchCount: allStocks.length,
       risingCount: 8 + (pulse % 13),
       warningCount: 2 + (pulse % 4)
     };
-  }, [allStocks.length, selectedDate, strictList.length]);
+  }, [allStocks.length, recommendedStocks.length, selectedDate]);
 
   const screenerStocks = useMemo(() => {
     return stocksWithLive.filter((stock) => {
@@ -317,8 +349,7 @@ export function StocksCenter({
     };
 
     push(selectedStock);
-    strictList.slice(0, 8).forEach(push);
-    qualityPool.slice(0, 6).forEach(push);
+    recommendedStocks.slice(0, RECOMMENDED_LIST_LIMIT).forEach(push);
 
     if (mode === "workbench") {
       displayedAllStocks.slice(0, 18).forEach(push);
@@ -327,7 +358,7 @@ export function StocksCenter({
     }
 
     return [...bucket].slice(0, 36);
-  }, [displayedAllStocks, displayedScreenerStocks, mode, qualityPool, selectedStock, strictList]);
+  }, [displayedAllStocks, displayedScreenerStocks, mode, recommendedStocks, selectedStock]);
 
   const liveRequestKey = liveRequestCodes.join(",");
 
@@ -425,13 +456,13 @@ export function StocksCenter({
 
   useEffect(() => {
     if (!selectedStock) return;
-    const index = allStocks.findIndex((item) => item.code === selectedStock.code);
+    const index = allBrowseStocks.findIndex((item) => item.code === selectedStock.code);
     if (index === -1) return;
     const nextPage = Math.floor(index / WORKBENCH_ALL_STOCKS_PAGE_SIZE) + 1;
     if (nextPage !== allStocksPage) {
       setAllStocksPage(nextPage);
     }
-  }, [allStocks, allStocksPage, selectedStock]);
+  }, [allBrowseStocks, allStocksPage, selectedStock]);
 
   useEffect(() => {
     let canceled = false;
@@ -587,7 +618,7 @@ export function StocksCenter({
             </button>
           </div>
           <div className="stocks-topbar-meta">
-            <span className="topbar-meta-pill">严格 {topSummary.strictCount}</span>
+            <span className="topbar-meta-pill">推荐 {topSummary.recommendedCount}</span>
             <span className="topbar-meta-pill">观察 {topSummary.watchCount}</span>
             <span className={`topbar-meta-pill ${catalogError ? "down" : catalogLoading ? "" : "up"}`}>
               {catalogError ? "股票库异常" : catalogLoading ? "股票库加载中" : `A股库 ${catalogTotal || stocksWithLive.length}`}
@@ -654,31 +685,30 @@ export function StocksCenter({
         {mode === "workbench" ? (
         <section className="stocks-workbench-layout">
           <aside className="stocks-sidebar">
-            <div className="stocks-sidebar-search">
+            <div className="stocks-sidebar-search search-shell">
+              <span className="search-shell-icon" aria-hidden="true">
+                ⌕
+              </span>
               <input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="搜索股票代码、名称、别名"
+                placeholder="搜索股票代码、名称、拼音缩写"
               />
             </div>
 
             <StockSection
-              title="严格筛选"
-              badge="高关注"
-              items={strictList}
+              title="山长推荐"
+              badge={`当前 ${recommendedStocks.length} 只`}
+              description="基于提及频次、关注度和财务快照的推荐清单。"
+              items={recommendedStocks}
               activeCode={selectedStock?.code || ""}
               onSelect={setSelectedCode}
             />
-            <StockSection
-              title="优选股池"
-              badge="聚焦观察"
-              items={qualityPool}
-              activeCode={selectedStock?.code || ""}
-              onSelect={setSelectedCode}
-            />
+            <WatchlistPlaceholderCard />
             <StockSection
               title="全部股票"
               badge={`第 ${Math.min(allStocksPage, totalAllStockPages)} / ${totalAllStockPages} 页`}
+              description="浏览区不含推荐股票，便于单独检索全库。"
               items={displayedAllStocks}
               activeCode={selectedStock?.code || ""}
               onSelect={setSelectedCode}
@@ -688,7 +718,7 @@ export function StocksCenter({
               page={Math.min(allStocksPage, totalAllStockPages)}
               totalPages={totalAllStockPages}
               onPageChange={setAllStocksPage}
-              summary={`共 ${allStocks.length} 只`}
+              summary={`共 ${allBrowseStocks.length} 只`}
             />
           </aside>
 
@@ -879,7 +909,11 @@ export function StocksCenter({
                   </header>
                   <div className="pool-progress-list">
                     <ProgressRow label="严格筛选通过率" value={Math.min(100, Math.round((strictList.length / 8) * 100))} />
-                    <ProgressRow label="优选股池完成度" value={Math.min(100, Math.round((qualityPool.length / 6) * 100))} />
+                    <ProgressRow label="山长推荐覆盖率" value={Math.min(100, Math.round((recommendedStocks.length / RECOMMENDED_LIST_LIMIT) * 100))} />
+                    <ProgressRow
+                      label="全库可浏览度"
+                      value={catalogTotal > 0 ? Math.min(100, Math.round((allBrowseStocks.length / catalogTotal) * 100)) : 0}
+                    />
                     <ProgressRow label="当前行业热度" value={Math.max(30, Math.round(scoreFromMention(selectedStock) * 2.6))} />
                   </div>
                 </section>
@@ -1095,6 +1129,7 @@ export function StocksCenter({
 function StockSection({
   title,
   badge,
+  description,
   items,
   activeCode,
   onSelect,
@@ -1102,6 +1137,7 @@ function StockSection({
 }: {
   title: string;
   badge: string;
+  description?: string;
   items: StockItem[];
   activeCode: string;
   onSelect: (code: string) => void;
@@ -1110,28 +1146,52 @@ function StockSection({
   return (
     <section className={`stock-section-card ${compact ? "compact" : ""}`}>
       <header>
-        <h3>{title}</h3>
+        <div>
+          <h3>{title}</h3>
+          {description ? <p className="stock-section-description">{description}</p> : null}
+        </div>
         <span>{badge}</span>
       </header>
       <div className="stock-section-list">
-        {items.map((item) => (
-          <button
-            key={item.code}
-            type="button"
-            className={`stock-row-btn ${activeCode === item.code ? "active" : ""}`}
-            onClick={() => onSelect(item.code)}
-          >
-            <div className="stock-row-main">
-              <p>{item.name}</p>
-              <span>{item.code}</span>
-            </div>
-            <div className="stock-row-side">
-              <strong>{item.mentionCount}</strong>
-              <span>{formatPercent(item.latestDividendYield)}</span>
-            </div>
-          </button>
-        ))}
+        {items.length > 0 ? (
+          items.map((item) => (
+            <button
+              key={item.code}
+              type="button"
+              className={`stock-row-btn ${activeCode === item.code ? "active" : ""}`}
+              onClick={() => onSelect(item.code)}
+            >
+              <div className="stock-row-main">
+                <p>{item.name}</p>
+                <span>{item.code}</span>
+              </div>
+              <div className="stock-row-side">
+                <strong>{item.mentionCount}</strong>
+                <span>—</span>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="stock-placeholder-box">当前搜索条件下暂无股票。</div>
+        )}
       </div>
+    </section>
+  );
+}
+
+function WatchlistPlaceholderCard() {
+  return (
+    <section className="stock-section-card stock-watchlist-card">
+      <header>
+        <div>
+          <h3>自选</h3>
+          <p className="stock-section-description">后续将按用户独立存储分组、收藏和排序。</p>
+        </div>
+        <button type="button" className="watchlist-placeholder-btn" disabled>
+          即将开放
+        </button>
+      </header>
+      <div className="stock-placeholder-box">还没有自选股，后续可按用户账号独立保存。</div>
     </section>
   );
 }
@@ -1163,6 +1223,36 @@ function PagerRow({
       </div>
     </div>
   );
+}
+
+function buildStockSearchBlob(stock: StockItem) {
+  const baseTokens = [stock.code, stock.code.split(".")[0] || "", stock.name, stock.industry, ...stock.aliases];
+  const pinyinTokens = [stock.name, ...stock.aliases]
+    .flatMap((item) => buildPinyinTokens(item))
+    .filter(Boolean);
+
+  return [...baseTokens, ...pinyinTokens]
+    .map((item) => normalizeSearchKeyword(item))
+    .filter(Boolean)
+    .join(" ");
+}
+
+function buildPinyinTokens(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+  return [
+    pinyin(text, { toneType: "none" }),
+    pinyin(text, { pattern: "first", toneType: "none" })
+  ];
+}
+
+function normalizeSearchKeyword(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[üǖǘǚǜ]/g, "v")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "");
 }
 
 function StockDetailDrawer({ drawer, onClose }: { drawer: DrawerState; onClose: () => void }) {

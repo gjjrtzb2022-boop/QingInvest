@@ -3112,6 +3112,37 @@ select {
   font-size: 0.76rem;
 }
 
+.search-shell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dce3ec;
+  border-radius: 12px;
+  background: #ffffff;
+  min-height: 44px;
+  padding: 0 12px;
+  box-shadow: 0 10px 24px rgba(140, 155, 175, 0.08);
+}
+
+.search-shell-icon {
+  flex: 0 0 auto;
+  color: #7f8da1;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.search-shell input {
+  border: 0;
+  min-height: 42px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.search-shell input:focus {
+  outline: none;
+}
+
 .stock-section-card {
   border: 1px solid #e3e8ef;
   border-radius: 10px;
@@ -3128,7 +3159,7 @@ select {
 
 .stock-section-card header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
@@ -3144,6 +3175,14 @@ select {
   color: #8794a6;
   font-size: 0.66rem;
   font-weight: 620;
+}
+
+.stock-section-description {
+  margin: 3px 0 0;
+  color: #8391a4;
+  font-size: 0.65rem;
+  line-height: 1.45;
+  font-weight: 570;
 }
 
 .stock-section-list {
@@ -3193,9 +3232,40 @@ select {
 }
 
 .stock-row-side span {
-  color: #5f7f50;
+  color: #7e8b9e;
   font-size: 0.64rem;
   font-weight: 620;
+}
+
+.stock-watchlist-card {
+  gap: 8px;
+}
+
+.watchlist-placeholder-btn {
+  border: 1px solid #d7dfea;
+  border-radius: 9px;
+  background: #fbfcfe;
+  min-height: 30px;
+  padding: 0 11px;
+  color: #8390a2;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.watchlist-placeholder-btn:disabled {
+  opacity: 1;
+}
+
+.stock-placeholder-box {
+  border: 1px dashed #d7e0ec;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 249, 253, 0.96) 100%);
+  min-height: 58px;
+  padding: 14px 12px;
+  color: #8794a6;
+  font-size: 0.7rem;
+  line-height: 1.55;
+  font-weight: 560;
 }
 
 .stocks-main-panel,
@@ -5042,6 +5112,7 @@ select {
 }
 
 :root[data-theme="dark"] .stocks-sidebar-search input,
+:root[data-theme="dark"] .search-shell,
 :root[data-theme="dark"] .stock-section-card,
 :root[data-theme="dark"] .stock-row-btn,
 :root[data-theme="dark"] .stocks-main-header,
@@ -5087,6 +5158,7 @@ select {
 }
 
 :root[data-theme="dark"] .stock-section-card h3,
+:root[data-theme="dark"] .watchlist-placeholder-btn,
 :root[data-theme="dark"] .stock-row-main p,
 :root[data-theme="dark"] .stock-row-side strong,
 :root[data-theme="dark"] .stocks-main-header h2,
@@ -5748,6 +5820,9 @@ select {
 :root[data-theme="dark"] .stock-detail-row-head span,
 :root[data-theme="dark"] .stock-detail-row p,
 :root[data-theme="dark"] .stocks-inline-state,
+:root[data-theme="dark"] .stock-section-description,
+:root[data-theme="dark"] .stock-placeholder-box,
+:root[data-theme="dark"] .search-shell-icon,
 :root[data-theme="dark"] .stocks-pager-row,
 :root[data-theme="dark"] .stock-detail-links a,
 :root[data-theme="dark"] .stocks-pager-controls button {
