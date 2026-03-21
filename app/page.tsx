@@ -21,8 +21,8 @@ export default function HomePage() {
       <main>
         <section className="hero-section">
           <div className="hero-deco left" aria-hidden="true">
-            <div className="stock-index-ornament">
-              <span className="stock-index-badge">UP</span>
+            <div className="stock-index-ornament trend">
+              <span className="stock-index-badge">涨</span>
               <span className="stock-index-bars">
                 <i />
                 <i />
@@ -59,17 +59,17 @@ export default function HomePage() {
           </div>
 
           <div className="hero-deco right" aria-hidden="true">
-            <div className="stock-index-ornament">
-              <span className="stock-index-badge">涨</span>
-              <span className="stock-index-bars">
+            <div className="stock-index-ornament breakout">
+              <span className="stock-index-badge">牛</span>
+              <span className="stock-index-candles">
                 <i />
                 <i />
                 <i />
               </span>
               <span className="stock-index-line">
                 <svg viewBox="0 0 84 84" aria-hidden="true">
-                  <path d="M15 56 L31 47 L43 52 L59 34 L69 25" />
-                  <path d="M61 25 H69 V33" />
+                  <path d="M13 54 L28 54 L28 47 L43 47 L43 37 L59 37 L59 24 L71 24" />
+                  <path d="M63 24 H71 V32" />
                 </svg>
               </span>
               <span className="ornament-tassel" />

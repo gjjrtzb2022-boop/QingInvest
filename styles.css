@@ -788,17 +788,17 @@ select {
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95) 0 18px, transparent 19px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(235, 248, 238, 0.98)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 240, 242, 0.98)),
     radial-gradient(circle at 22% 20%, rgba(255, 255, 255, 0.82), transparent 35%);
-  border: 3px solid #2eae69;
+  border: 3px solid #df4a5d;
   position: relative;
   display: grid;
   place-items: center;
   overflow: hidden;
   box-shadow:
-    inset 0 -10px 14px rgba(49, 103, 66, 0.16),
-    0 10px 22px rgba(53, 170, 100, 0.24),
-    0 0 16px rgba(122, 222, 159, 0.22);
+    inset 0 -10px 14px rgba(134, 34, 52, 0.14),
+    0 10px 22px rgba(220, 76, 102, 0.22),
+    0 0 16px rgba(255, 145, 162, 0.2);
   animation: ornament-glow 1.9s ease-in-out infinite;
 }
 
@@ -811,9 +811,9 @@ select {
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background: linear-gradient(180deg, #74e09d, #169355);
-  border: 2px solid #0f7a46;
-  box-shadow: 0 2px 6px rgba(23, 117, 66, 0.24);
+  background: linear-gradient(180deg, #ff8fa1, #db4159);
+  border: 2px solid #c8344d;
+  box-shadow: 0 2px 6px rgba(165, 38, 63, 0.24);
 }
 
 .stock-index-ornament::after {
@@ -834,14 +834,14 @@ select {
   top: 10px;
   z-index: 3;
   border-radius: 999px;
-  background: linear-gradient(180deg, #1aa45f, #117947);
+  background: linear-gradient(180deg, #f56f84, #d53e56);
   padding: 3px 7px;
-  color: #f6fff9;
+  color: #fff9fb;
   font-size: 0.69rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.08em;
-  box-shadow: 0 4px 10px rgba(18, 113, 66, 0.2);
+  box-shadow: 0 4px 10px rgba(191, 49, 73, 0.24);
 }
 
 .ornament-tassel {
@@ -852,8 +852,8 @@ select {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #7fe4a1, #1aa25e);
-  box-shadow: 0 11px 0 0 #1a9a5a, 0 22px 0 0 #17864f;
+  background: radial-gradient(circle at 35% 30%, #ff9fb0, #dd445c);
+  box-shadow: 0 11px 0 0 #da425a, 0 22px 0 0 #ca3950;
 }
 
 .stock-index-bars {
@@ -871,8 +871,8 @@ select {
   display: block;
   width: 8px;
   border-radius: 6px 6px 2px 2px;
-  background: linear-gradient(180deg, rgba(110, 229, 154, 0.18), rgba(39, 170, 94, 0.48));
-  border: 1px solid rgba(26, 141, 76, 0.16);
+  background: linear-gradient(180deg, rgba(255, 170, 186, 0.18), rgba(227, 79, 102, 0.48));
+  border: 1px solid rgba(203, 60, 86, 0.16);
 }
 
 .stock-index-bars i:nth-child(1) {
@@ -900,11 +900,79 @@ select {
 
 .stock-index-line path {
   fill: none;
-  stroke: #169153;
+  stroke: #de455c;
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 2px 3px rgba(22, 145, 83, 0.16));
+  filter: drop-shadow(0 2px 3px rgba(222, 69, 92, 0.18));
+}
+
+.stock-index-candles {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.stock-index-candles i {
+  position: relative;
+  display: block;
+  width: 10px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #ffadb9, #df4860);
+  box-shadow: inset 0 -4px 8px rgba(146, 29, 49, 0.18);
+}
+
+.stock-index-candles i::before,
+.stock-index-candles i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  border-radius: 99px;
+  background: #d6455c;
+}
+
+.stock-index-candles i::before {
+  top: -7px;
+  height: 7px;
+}
+
+.stock-index-candles i::after {
+  bottom: -8px;
+  height: 8px;
+}
+
+.stock-index-candles i:nth-child(1) {
+  height: 18px;
+}
+
+.stock-index-candles i:nth-child(2) {
+  height: 26px;
+}
+
+.stock-index-candles i:nth-child(3) {
+  height: 34px;
+}
+
+.stock-index-ornament.breakout .stock-index-line path:first-child {
+  stroke-width: 3.5;
+}
+
+.stock-index-ornament.breakout .stock-index-badge {
+  padding-inline: 8px;
+}
+
+.stock-index-ornament.breakout {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.96) 0 18px, transparent 19px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 236, 239, 0.99)),
+    radial-gradient(circle at 74% 18%, rgba(255, 255, 255, 0.78), transparent 32%);
 }
 
 @keyframes ornament-sway-left {
