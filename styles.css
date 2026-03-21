@@ -3086,7 +3086,7 @@ select {
   display: grid;
   grid-template-columns: 214px minmax(0, 1fr);
   gap: 10px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .stocks-sidebar,
@@ -3095,8 +3095,10 @@ select {
   border-radius: 11px;
   background: #f8fafc;
   padding: 9px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 9px;
+  min-height: 100%;
   max-height: calc(100vh - 146px);
   overflow: auto;
 }
@@ -3148,13 +3150,15 @@ select {
   border-radius: 10px;
   background: #ffffff;
   padding: 7px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
 .stock-section-card.compact {
-  max-height: 392px;
-  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .stock-section-card header {
@@ -3188,6 +3192,13 @@ select {
 .stock-section-list {
   display: grid;
   gap: 5px;
+}
+
+.stock-section-card.compact .stock-section-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
 }
 
 .stock-row-btn {
@@ -5778,6 +5789,7 @@ select {
   color: #72859d;
   font-size: 0.68rem;
   font-weight: 620;
+  margin-top: auto;
 }
 
 .stocks-pager-controls {
