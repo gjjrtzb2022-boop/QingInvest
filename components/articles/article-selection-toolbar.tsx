@@ -156,14 +156,29 @@ export function ArticleSelectionToolbar({
   const onShare = withPreservedSelection(async () => {
     if (!toolbar?.text) return;
     const pageUrl = window.location.href;
-    if (navigator.share) {
+    const blob = await createQuoteShareCard({
+      title: articleTitle,
+      quote: toolbar.text,
+      sourceUrl: pageUrl
+    });
+
+    if (!blob) {
+      showToast("分享图生成失败，请稍后再试");
+      return;
+    }
+
+    const file = new File([blob], buildShareImageName(articleTitle), {
+      type: "image/png"
+    });
+
+    if (navigator.share && canShareFiles(file)) {
       try {
         await navigator.share({
           title: articleTitle,
-          text: toolbar.text,
-          url: pageUrl
+          text: `《${articleTitle}》金句分享`,
+          files: [file]
         });
-        showToast("已打开分享面板");
+        showToast("已打开图片分享面板");
         clearSelectionAndHide();
         return;
       } catch (error) {
@@ -173,10 +188,9 @@ export function ArticleSelectionToolbar({
       }
     }
 
-    const fallbackText = `《${articleTitle}》\n${toolbar.text}\n${pageUrl}`;
-    const copied = await copyText(fallbackText);
-    showToast(copied ? "已复制分享内容" : "分享失败，请手动复制");
-    if (copied) clearSelectionAndHide();
+    downloadBlob(blob, buildShareImageName(articleTitle));
+    showToast("已生成分享图并下载");
+    clearSelectionAndHide();
   });
 
   const onSearch = withPreservedSelection(() => {
@@ -274,6 +288,186 @@ async function copyText(value: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function canShareFiles(file: File) {
+  if (typeof navigator === "undefined" || typeof navigator.canShare !== "function") {
+    return false;
+  }
+
+  try {
+    return navigator.canShare({ files: [file] });
+  } catch {
+    return false;
+  }
+}
+
+function buildShareImageName(title: string) {
+  const safeTitle = title
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .slice(0, 48);
+  return `${safeTitle || "qinginvest-quote"}.png`;
+}
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+async function createQuoteShareCard(input: {
+  title: string;
+  quote: string;
+  sourceUrl: string;
+}): Promise<Blob | null> {
+  const quote = input.quote.replace(/\s+/g, " ").trim().slice(0, 280);
+  if (!quote) return null;
+
+  const width = 1200;
+  const height = 1500;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  const background = context.createLinearGradient(0, 0, 0, height);
+  background.addColorStop(0, "#f7f4ee");
+  background.addColorStop(0.55, "#f4f0e8");
+  background.addColorStop(1, "#efe9df");
+  context.fillStyle = background;
+  context.fillRect(0, 0, width, height);
+
+  context.fillStyle = "rgba(102, 85, 62, 0.08)";
+  context.fillRect(88, 88, width - 176, 2);
+  context.fillRect(88, height - 90, width - 176, 2);
+
+  context.strokeStyle = "rgba(96, 80, 58, 0.15)";
+  context.lineWidth = 2;
+  roundRect(context, 72, 72, width - 144, height - 144, 30);
+  context.stroke();
+
+  context.fillStyle = "#2f2b24";
+  context.font = '600 42px "Times New Roman", "Songti SC", serif';
+  context.fillText("QingInvest", 110, 154);
+
+  context.fillStyle = "#8d7d67";
+  context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.textAlign = "right";
+  context.fillText("金句分享", width - 110, 154);
+  context.textAlign = "left";
+
+  context.fillStyle = "rgba(116, 97, 70, 0.18)";
+  context.font = '700 220px "Georgia", "Times New Roman", serif';
+  context.fillText("“", 116, 370);
+
+  const quoteLines = wrapCanvasText(context, quote, width - 280, '600 62px "PingFang SC", "Noto Serif SC", serif');
+  let cursorY = 410;
+  context.fillStyle = "#26221d";
+  context.font = '600 62px "PingFang SC", "Noto Serif SC", serif';
+  for (const line of quoteLines) {
+    context.fillText(line, 140, cursorY);
+    cursorY += 96;
+  }
+
+  cursorY += 40;
+  context.fillStyle = "#7d6f5b";
+  context.font = '500 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("选自", 140, cursorY);
+
+  cursorY += 54;
+  const titleLines = wrapCanvasText(context, `《${input.title}》`, width - 280, '600 34px "PingFang SC", "Noto Sans SC", sans-serif');
+  context.fillStyle = "#3a342b";
+  context.font = '600 34px "PingFang SC", "Noto Sans SC", sans-serif';
+  for (const line of titleLines.slice(0, 2)) {
+    context.fillText(line, 140, cursorY);
+    cursorY += 52;
+  }
+
+  const footerY = height - 250;
+  context.fillStyle = "#6d6253";
+  context.fillRect(140, footerY, 110, 3);
+  context.fillRect(width - 250, footerY, 110, 3);
+
+  context.fillStyle = "#2c2822";
+  context.font = '600 30px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("清一山长投资研究平台", 140, footerY + 74);
+
+  context.fillStyle = "#8a7b66";
+  context.font = '500 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("保持克制，保持清醒，保持长期主义。", 140, footerY + 122);
+
+  context.textAlign = "right";
+  context.fillStyle = "#91826c";
+  context.font = '500 22px "SF Mono", "Menlo", monospace';
+  context.fillText(compactUrl(input.sourceUrl), width - 140, height - 156);
+  context.textAlign = "left";
+
+  return await new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), "image/png", 1);
+  });
+}
+
+function wrapCanvasText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  font: string
+) {
+  context.font = font;
+  const lines: string[] = [];
+  const paragraphs = text.split(/\n+/).map((item) => item.trim()).filter(Boolean);
+
+  for (const paragraph of paragraphs) {
+    let current = "";
+    for (const char of paragraph) {
+      const next = current + char;
+      if (context.measureText(next).width <= maxWidth) {
+        current = next;
+      } else {
+        if (current) lines.push(current);
+        current = char;
+      }
+    }
+    if (current) lines.push(current);
+  }
+
+  return lines;
+}
+
+function compactUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return `${url.host}${url.pathname}`.slice(0, 56);
+  } catch {
+    return value.slice(0, 56);
+  }
+}
+
+function roundRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.arcTo(x + width, y, x + width, y + height, radius);
+  context.arcTo(x + width, y + height, x, y + height, radius);
+  context.arcTo(x, y + height, x, y, radius);
+  context.arcTo(x, y, x + width, y, radius);
+  context.closePath();
 }
 
 function IconNote() {
