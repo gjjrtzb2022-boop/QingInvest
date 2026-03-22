@@ -6,9 +6,10 @@ const READ_CURSOR_OFFSET = 112;
 
 type ArticleReadingProgressProps = {
   articleRootId: string;
+  completeAtId?: string;
 };
 
-export function ArticleReadingProgress({ articleRootId }: ArticleReadingProgressProps) {
+export function ArticleReadingProgress({ articleRootId, completeAtId }: ArticleReadingProgressProps) {
   const fillRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
@@ -22,9 +23,12 @@ export function ArticleReadingProgress({ articleRootId }: ArticleReadingProgress
 
       const rect = root.getBoundingClientRect();
       const start = window.scrollY + rect.top;
-      const end = start + rect.height;
       const cursor = window.scrollY + READ_CURSOR_OFFSET;
-      const progress = Math.min(1, Math.max(0, (cursor - start) / Math.max(end - start, 1)));
+      const completeTarget = completeAtId ? document.getElementById(completeAtId) : null;
+      const completeAt = completeTarget
+        ? window.scrollY + completeTarget.getBoundingClientRect().top
+        : start + rect.height;
+      const progress = cursor >= completeAt ? 1 : Math.min(1, Math.max(0, (cursor - start) / Math.max(completeAt - start, 1)));
 
       fill.style.transform = `scaleX(${progress.toFixed(4)})`;
     };
@@ -45,7 +49,7 @@ export function ArticleReadingProgress({ articleRootId }: ArticleReadingProgress
       window.removeEventListener("scroll", queueUpdate);
       window.removeEventListener("resize", queueUpdate);
     };
-  }, [articleRootId]);
+  }, [articleRootId, completeAtId]);
 
   return (
     <div className="article-reading-progress" aria-hidden="true">

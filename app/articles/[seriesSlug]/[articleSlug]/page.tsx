@@ -104,7 +104,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
             }
             main={
               <article id="articleReadingRoot" className="article-detail-main">
-                <ArticleReadingProgress articleRootId="articleReadingRoot" />
+                <ArticleReadingProgress articleRootId="articleReadingRoot" completeAtId="relatedContentSection" />
                 <div className="article-detail-header">
                   <p className="article-breadcrumb">
                     <Link href="/articles">专题文章</Link>
