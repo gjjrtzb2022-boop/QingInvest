@@ -3315,7 +3315,7 @@ select {
 }
 
 .quote-share-preview-modal {
-  width: min(720px, calc(100vw - 32px));
+  width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
   border-radius: 28px;
   border: 1px solid rgba(219, 210, 194, 0.92);
@@ -3372,11 +3372,48 @@ select {
 }
 
 .quote-share-preview-image {
-  width: min(100%, 440px);
+  width: min(100%, 320px);
   height: auto;
   display: block;
   border-radius: 20px;
   box-shadow: 0 20px 44px rgba(34, 28, 19, 0.16);
+}
+
+.quote-share-preview-loading {
+  width: min(420px, calc(100vw - 32px));
+  min-height: 220px;
+  place-items: center;
+  text-align: center;
+  align-content: center;
+}
+
+.quote-share-preview-loading p {
+  margin: 0;
+  color: #8b7b66;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.quote-share-preview-loading strong {
+  color: #2f2b24;
+  font-size: 1rem;
+  font-weight: 760;
+}
+
+.quote-share-preview-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid rgba(170, 149, 117, 0.26);
+  border-top-color: #9f8159;
+  animation: quote-share-spin 0.88s linear infinite;
+}
+
+@keyframes quote-share-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .quote-share-preview-actions {
@@ -5944,6 +5981,19 @@ select {
 :root[data-theme="dark"] .quote-share-preview-canvas-shell {
   border-color: #334256;
   background: rgba(20, 28, 40, 0.9);
+}
+
+:root[data-theme="dark"] .quote-share-preview-loading strong {
+  color: #edf3fb;
+}
+
+:root[data-theme="dark"] .quote-share-preview-loading p {
+  color: #9db0c6;
+}
+
+:root[data-theme="dark"] .quote-share-preview-spinner {
+  border-color: rgba(107, 132, 168, 0.24);
+  border-top-color: #d7b071;
 }
 
 :root[data-theme="dark"] .stocks-sidebar,

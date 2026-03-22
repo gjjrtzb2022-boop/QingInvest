@@ -31,6 +31,7 @@ export function ArticleSelectionToolbar({
   const [toolbar, setToolbar] = useState<ToolbarState | null>(null);
   const [toastText, setToastText] = useState("");
   const [sharePreview, setSharePreview] = useState<SharePreviewState | null>(null);
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const toastTimer = useRef<number | null>(null);
 
   const showToast = useCallback((message: string) => {
@@ -166,11 +167,19 @@ export function ArticleSelectionToolbar({
   const onShare = withPreservedSelection(async () => {
     if (!toolbar?.text) return;
     const pageUrl = window.location.href;
+    const quoteText = toolbar.text;
+
+    clearSelectionAndHide();
+    setIsGeneratingShare(true);
+    await waitForNextPaint();
+
     const blob = await createQuoteShareCard({
       title: articleTitle,
-      quote: toolbar.text,
+      quote: quoteText,
       sourceUrl: pageUrl
     });
+
+    setIsGeneratingShare(false);
 
     if (!blob) {
       showToast("分享图生成失败，请稍后再试");
@@ -186,7 +195,6 @@ export function ArticleSelectionToolbar({
       url: URL.createObjectURL(blob),
       fileName: buildShareImageName(articleTitle)
     });
-    clearSelectionAndHide();
   });
 
   const closeSharePreview = useCallback(() => {
@@ -237,34 +245,42 @@ export function ArticleSelectionToolbar({
     clearSelectionAndHide();
   });
 
-  if (!toolbar) {
-    return <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>;
-  }
-
   return (
     <>
-      <div
-        className={`selection-toolbar ${toolbar.placeBelow ? "below" : ""}`}
-        style={{ left: `${toolbar.left}px`, top: `${toolbar.top}px` }}
-      >
-        <div className="selection-toolbar-row">
-          <ToolbarButton label="批注" onClick={onAnnotate}>
-            <IconNote />
-          </ToolbarButton>
-          <ToolbarButton label="金句" onClick={onQuote}>
-            <IconQuote />
-          </ToolbarButton>
-          <ToolbarButton label="复制" onClick={onCopy}>
-            <IconCopy />
-          </ToolbarButton>
-          <ToolbarButton label="分享" onClick={onShare}>
-            <IconShare />
-          </ToolbarButton>
-          <ToolbarButton label="搜索" onClick={onSearch}>
-            <IconSearch />
-          </ToolbarButton>
+      {toolbar ? (
+        <div
+          className={`selection-toolbar ${toolbar.placeBelow ? "below" : ""}`}
+          style={{ left: `${toolbar.left}px`, top: `${toolbar.top}px` }}
+        >
+          <div className="selection-toolbar-row">
+            <ToolbarButton label="批注" onClick={onAnnotate}>
+              <IconNote />
+            </ToolbarButton>
+            <ToolbarButton label="金句" onClick={onQuote}>
+              <IconQuote />
+            </ToolbarButton>
+            <ToolbarButton label="复制" onClick={onCopy}>
+              <IconCopy />
+            </ToolbarButton>
+            <ToolbarButton label="分享" onClick={onShare}>
+              <IconShare />
+            </ToolbarButton>
+            <ToolbarButton label="搜索" onClick={onSearch}>
+              <IconSearch />
+            </ToolbarButton>
+          </div>
         </div>
-      </div>
+      ) : null}
+
+      {isGeneratingShare ? (
+        <div className="quote-share-preview-overlay">
+          <div className="quote-share-preview-modal quote-share-preview-loading" role="status" aria-live="polite">
+            <div className="quote-share-preview-spinner" aria-hidden="true" />
+            <p>正在生成金句分享图...</p>
+            <strong>这次会先出预览，再决定分享或下载</strong>
+          </div>
+        </div>
+      ) : null}
 
       {sharePreview ? (
         <div className="quote-share-preview-overlay" role="presentation" onClick={closeSharePreview}>
@@ -404,11 +420,11 @@ async function createQuoteShareCard(input: {
   quote: string;
   sourceUrl: string;
 }): Promise<Blob | null> {
-  const quote = input.quote.replace(/\s+/g, " ").trim().slice(0, 280);
+  const quote = input.quote.replace(/\s+/g, " ").trim().slice(0, 220);
   if (!quote) return null;
 
-  const width = 1200;
-  const height = 1500;
+  const width = 960;
+  const height = 1280;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -433,62 +449,68 @@ async function createQuoteShareCard(input: {
 
   context.fillStyle = "#2f2b24";
   context.font = '600 42px "Times New Roman", "Songti SC", serif';
-  context.fillText("QingInvest", 110, 154);
+  context.fillText("QingInvest", 92, 140);
 
   context.fillStyle = "#8d7d67";
   context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
   context.textAlign = "right";
-  context.fillText("金句分享", width - 110, 154);
+  context.fillText("金句分享", width - 92, 140);
   context.textAlign = "left";
 
   context.fillStyle = "rgba(116, 97, 70, 0.18)";
-  context.font = '700 220px "Georgia", "Times New Roman", serif';
-  context.fillText("“", 116, 370);
+  context.font = '700 176px "Georgia", "Times New Roman", serif';
+  context.fillText("“", 104, 310);
 
-  const quoteLines = wrapCanvasText(context, quote, width - 280, '600 62px "PingFang SC", "Noto Serif SC", serif');
-  let cursorY = 410;
+  const quoteLines = wrapCanvasText(context, quote, width - 224, '600 50px "PingFang SC", "Noto Serif SC", serif');
+  let cursorY = 340;
   context.fillStyle = "#26221d";
-  context.font = '600 62px "PingFang SC", "Noto Serif SC", serif';
+  context.font = '600 50px "PingFang SC", "Noto Serif SC", serif';
   for (const line of quoteLines) {
-    context.fillText(line, 140, cursorY);
-    cursorY += 96;
+    context.fillText(line, 118, cursorY);
+    cursorY += 78;
   }
 
-  cursorY += 40;
+  cursorY += 30;
   context.fillStyle = "#7d6f5b";
-  context.font = '500 28px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("选自", 140, cursorY);
+  context.font = '500 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("选自", 118, cursorY);
 
-  cursorY += 54;
-  const titleLines = wrapCanvasText(context, `《${input.title}》`, width - 280, '600 34px "PingFang SC", "Noto Sans SC", sans-serif');
+  cursorY += 44;
+  const titleLines = wrapCanvasText(context, `《${input.title}》`, width - 224, '600 30px "PingFang SC", "Noto Sans SC", sans-serif');
   context.fillStyle = "#3a342b";
-  context.font = '600 34px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = '600 30px "PingFang SC", "Noto Sans SC", sans-serif';
   for (const line of titleLines.slice(0, 2)) {
-    context.fillText(line, 140, cursorY);
-    cursorY += 52;
+    context.fillText(line, 118, cursorY);
+    cursorY += 46;
   }
 
-  const footerY = height - 250;
+  const footerY = height - 212;
   context.fillStyle = "#6d6253";
-  context.fillRect(140, footerY, 110, 3);
-  context.fillRect(width - 250, footerY, 110, 3);
+  context.fillRect(118, footerY, 92, 3);
+  context.fillRect(width - 210, footerY, 92, 3);
 
   context.fillStyle = "#2c2822";
-  context.font = '600 30px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("清一山长投资研究平台", 140, footerY + 74);
+  context.font = '600 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("清一山长投资研究平台", 118, footerY + 60);
 
   context.fillStyle = "#8a7b66";
-  context.font = '500 24px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("保持克制，保持清醒，保持长期主义。", 140, footerY + 122);
+  context.font = '500 21px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("保持克制，保持清醒，保持长期主义。", 118, footerY + 104);
 
   context.textAlign = "right";
   context.fillStyle = "#91826c";
-  context.font = '500 22px "SF Mono", "Menlo", monospace';
-  context.fillText(compactUrl(input.sourceUrl), width - 140, height - 156);
+  context.font = '500 18px "SF Mono", "Menlo", monospace';
+  context.fillText(compactUrl(input.sourceUrl), width - 118, height - 132);
   context.textAlign = "left";
 
   return await new Promise((resolve) => {
     canvas.toBlob((blob) => resolve(blob), "image/png", 1);
+  });
+}
+
+async function waitForNextPaint() {
+  await new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => resolve());
   });
 }
 
