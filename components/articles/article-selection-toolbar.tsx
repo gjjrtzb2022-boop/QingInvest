@@ -17,6 +17,12 @@ type ToolbarState = {
   placeBelow: boolean;
 };
 
+type SharePreviewState = {
+  blob: Blob;
+  url: string;
+  fileName: string;
+};
+
 export function ArticleSelectionToolbar({
   articleSlug,
   articleTitle,
@@ -24,6 +30,7 @@ export function ArticleSelectionToolbar({
 }: ArticleSelectionToolbarProps) {
   const [toolbar, setToolbar] = useState<ToolbarState | null>(null);
   const [toastText, setToastText] = useState("");
+  const [sharePreview, setSharePreview] = useState<SharePreviewState | null>(null);
   const toastTimer = useRef<number | null>(null);
 
   const showToast = useCallback((message: string) => {
@@ -115,8 +122,11 @@ export function ArticleSelectionToolbar({
       if (toastTimer.current) {
         window.clearTimeout(toastTimer.current);
       }
+      if (sharePreview?.url) {
+        URL.revokeObjectURL(sharePreview.url);
+      }
     };
-  }, []);
+  }, [sharePreview]);
 
   const withPreservedSelection = (action: () => Promise<void> | void) => async () => {
     if (!toolbar?.text) return;
@@ -167,7 +177,36 @@ export function ArticleSelectionToolbar({
       return;
     }
 
-    const file = new File([blob], buildShareImageName(articleTitle), {
+    if (sharePreview?.url) {
+      URL.revokeObjectURL(sharePreview.url);
+    }
+
+    setSharePreview({
+      blob,
+      url: URL.createObjectURL(blob),
+      fileName: buildShareImageName(articleTitle)
+    });
+    clearSelectionAndHide();
+  });
+
+  const closeSharePreview = useCallback(() => {
+    setSharePreview((current) => {
+      if (current?.url) {
+        URL.revokeObjectURL(current.url);
+      }
+      return null;
+    });
+  }, []);
+
+  const onDownloadShareImage = useCallback(() => {
+    if (!sharePreview) return;
+    downloadBlob(sharePreview.blob, sharePreview.fileName);
+    showToast("已下载分享图");
+  }, [sharePreview, showToast]);
+
+  const onNativeShareImage = useCallback(async () => {
+    if (!sharePreview) return;
+    const file = new File([sharePreview.blob], sharePreview.fileName, {
       type: "image/png"
     });
 
@@ -179,7 +218,6 @@ export function ArticleSelectionToolbar({
           files: [file]
         });
         showToast("已打开图片分享面板");
-        clearSelectionAndHide();
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -188,10 +226,9 @@ export function ArticleSelectionToolbar({
       }
     }
 
-    downloadBlob(blob, buildShareImageName(articleTitle));
-    showToast("已生成分享图并下载");
-    clearSelectionAndHide();
-  });
+    downloadBlob(sharePreview.blob, sharePreview.fileName);
+    showToast("当前设备不支持系统图片分享，已直接下载");
+  }, [articleTitle, sharePreview, showToast]);
 
   const onSearch = withPreservedSelection(() => {
     if (!toolbar?.text) return;
@@ -228,6 +265,44 @@ export function ArticleSelectionToolbar({
           </ToolbarButton>
         </div>
       </div>
+
+      {sharePreview ? (
+        <div className="quote-share-preview-overlay" role="presentation" onClick={closeSharePreview}>
+          <div
+            className="quote-share-preview-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="分享图预览"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="quote-share-preview-header">
+              <div>
+                <p>分享图预览</p>
+                <strong>简约语录卡</strong>
+              </div>
+              <button type="button" className="quote-share-preview-close" onClick={closeSharePreview}>
+                关闭
+              </button>
+            </div>
+
+            <div className="quote-share-preview-canvas-shell">
+              <img src={sharePreview.url} alt="语录分享图预览" className="quote-share-preview-image" />
+            </div>
+
+            <div className="quote-share-preview-actions">
+              <button type="button" className="quote-share-preview-btn subtle" onClick={closeSharePreview}>
+                取消
+              </button>
+              <button type="button" className="quote-share-preview-btn subtle" onClick={onDownloadShareImage}>
+                下载图片
+              </button>
+              <button type="button" className="quote-share-preview-btn primary" onClick={() => void onNativeShareImage()}>
+                继续分享
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>
     </>
