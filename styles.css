@@ -3423,12 +3423,13 @@ select {
   place-items: center;
   overflow: auto;
   min-height: 0;
-  max-height: min(46vh, 640px);
+  max-height: min(40vh, 520px);
 }
 
 .quote-share-preview-image {
-  width: min(100%, 280px);
-  max-height: min(42vh, 560px);
+  width: auto;
+  max-width: min(100%, 300px);
+  max-height: min(36vh, 480px);
   height: auto;
   display: block;
   border-radius: 20px;
@@ -3479,6 +3480,9 @@ select {
   flex-wrap: wrap;
   padding-top: 2px;
   border-top: 1px solid rgba(214, 204, 188, 0.4);
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(250, 247, 241, 0.92) 0%, rgba(244, 239, 230, 0.98) 100%);
 }
 
 .quote-share-preview-btn {
@@ -6039,6 +6043,11 @@ select {
 :root[data-theme="dark"] .quote-share-preview-canvas-shell {
   border-color: #334256;
   background: rgba(20, 28, 40, 0.9);
+}
+
+:root[data-theme="dark"] .quote-share-preview-actions {
+  background: linear-gradient(180deg, rgba(17, 24, 35, 0.92) 0%, rgba(13, 19, 29, 0.98) 100%);
+  border-top-color: rgba(90, 108, 132, 0.34);
 }
 
 :root[data-theme="dark"] .quote-share-style-chip {

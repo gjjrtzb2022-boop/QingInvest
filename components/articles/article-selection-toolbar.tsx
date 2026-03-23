@@ -701,15 +701,16 @@ function renderMidnightNoteCard(
   context.fillRect(92, height - 288, width - 184, 1.5);
   context.fillStyle = "#d2c1a4";
   context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(compactUrl(sourceUrl), 92, height - 190);
+  context.fillText("QingInvest", 92, height - 190);
 }
 
 function renderVerticalEditorialCard(
   context: CanvasRenderingContext2D,
   input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
-  const { width, height, quote, title, sourceUrl, username } = input;
+  const { width, height, quote, title, username } = input;
   const verticalTitleColumns = buildVerticalHeadlineColumns(title);
+  const authorColumns = buildVerticalAuthorColumns(username);
 
   context.fillStyle = "#1b1d24";
   context.fillRect(0, 0, width, height);
@@ -724,24 +725,28 @@ function renderVerticalEditorialCard(
     columnGap: 32
   });
 
+  drawVerticalText(context, authorColumns, 248, 214, {
+    color: "#dbcba8",
+    font: '600 34px "PingFang SC", "Noto Sans SC", sans-serif',
+    lineGap: 16,
+    columnGap: 26
+  });
+
   context.strokeStyle = "rgba(207, 193, 163, 0.28)";
   context.lineWidth = 1.5;
   context.beginPath();
-  context.moveTo(width - 170, 220);
-  context.lineTo(width - 154, 720);
-  context.moveTo(width - 252, 220);
-  context.lineTo(width - 252, 720);
+  context.moveTo(width - 162, 220);
+  context.lineTo(width - 162, 718);
+  context.moveTo(width - 254, 220);
+  context.lineTo(width - 254, 718);
   context.stroke();
 
-  context.textAlign = "right";
-  context.fillStyle = "#c0b296";
-  if (username.trim()) {
-    context.font = '600 24px "PingFang SC", "Noto Sans SC", sans-serif';
-    context.fillText(shortenTitle(username.trim(), 12), width - 108, 190);
-  }
-  context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(`摘录于 ${formatDateCn()}`, width - 108, username.trim() ? 228 : 204);
-  context.textAlign = "left";
+  drawVerticalText(context, [formatDateCn(true), "摘录于"], width - 236, 248, {
+    color: "#b7aa90",
+    font: '500 28px "Songti SC", "Noto Serif SC", serif',
+    lineGap: 16,
+    columnGap: 44
+  });
 
   const quoteLayout = fitQuoteLayout(context, quote, 760, [
     { size: 62, lineHeight: 104, maxLines: 6 },
@@ -773,14 +778,14 @@ function renderVerticalEditorialCard(
 
   context.fillStyle = "#d7c7a8";
   context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(compactUrl(sourceUrl), 94, height - 188);
+  context.fillText("QingInvest", 94, height - 188);
 }
 
 function renderSeaCoverCard(
   context: CanvasRenderingContext2D,
   input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
-  const { width, height, quote, title, sourceUrl, username } = input;
+  const { width, height, quote, title, username } = input;
   const verticalTitleColumns = buildVerticalHeadlineColumns(title);
 
   drawSeaBackground(context, 0, 0, width, 730);
@@ -840,7 +845,7 @@ function renderSeaCoverCard(
   context.fillText(footerLead, 88, height - 188);
   context.fillStyle = "#696d79";
   context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(compactUrl(sourceUrl), 88, height - 136);
+  context.fillText("QingInvest", 88, height - 136);
 }
 
 function renderFramedPaperCard(
@@ -988,6 +993,16 @@ function buildVerticalHeadlineColumns(title: string) {
     return ["文章", "摘录"];
   }
   return titleToVerticalColumns(chineseOnly);
+}
+
+function buildVerticalAuthorColumns(username: string) {
+  const author = username.trim() || "QingInvest";
+  const cleaned = author.replace(/\s+/g, "");
+  if (/^[A-Za-z]+$/.test(cleaned)) {
+    return ["Qing", "Invest"];
+  }
+  const safe = cleaned.slice(0, 8);
+  return safe.match(/.{1,2}/g) || ["清一", "投资"];
 }
 
 function drawVerticalText(
