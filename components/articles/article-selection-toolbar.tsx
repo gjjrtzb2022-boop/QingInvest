@@ -678,8 +678,16 @@ function renderCalendarMinimalCard(
   const dateParts = getCalendarParts();
   const typography = getShareTypography(font);
 
-  context.fillStyle = "#f8f7f4";
+  const backdrop = context.createLinearGradient(0, 0, 0, height);
+  backdrop.addColorStop(0, "#f7f4ee");
+  backdrop.addColorStop(0.52, "#f4efe6");
+  backdrop.addColorStop(1, "#efe8dc");
+  context.fillStyle = backdrop;
   context.fillRect(0, 0, width, height);
+  drawPaperTexture(context, 0, 0, width, height, 0.08);
+  drawSoftVignette(context, width, height, "rgba(120, 102, 72, 0.08)");
+  drawFineFrame(context, 38, 38, width - 76, height - 76, "rgba(118, 98, 68, 0.22)", 1.2);
+  drawFineFrame(context, 58, 58, width - 116, height - 116, "rgba(174, 152, 120, 0.18)", 1);
 
   context.textAlign = "center";
   context.fillStyle = "#2b1a11";
@@ -693,6 +701,10 @@ function renderCalendarMinimalCard(
   context.font = `500 34px ${typography.sans}`;
   context.fillText(dateParts.weekday, width / 2, 498);
 
+  context.fillStyle = "rgba(175, 146, 102, 0.16)";
+  context.beginPath();
+  context.arc(width / 2, 360, 220, 0, Math.PI * 2);
+  context.fill();
   context.fillStyle = "rgba(88, 79, 72, 0.36)";
   context.fillRect(width / 2 - 70, 610, 140, 2);
 
@@ -748,8 +760,20 @@ function renderMidnightNoteCard(
   const headerName = username.trim();
   const typography = getShareTypography(font);
 
-  context.fillStyle = "#1c1d24";
+  const bg = context.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, "#191c24");
+  bg.addColorStop(0.55, "#12151c");
+  bg.addColorStop(1, "#0e1016");
+  context.fillStyle = bg;
   context.fillRect(0, 0, width, height);
+  drawSoftVignette(context, width, height, "rgba(0, 0, 0, 0.34)");
+  drawPaperTexture(context, 0, 0, width, height, 0.035, "#f0dfbd");
+
+  const glow = context.createRadialGradient(width * 0.18, 150, 20, width * 0.18, 150, 240);
+  glow.addColorStop(0, "rgba(237, 201, 139, 0.22)");
+  glow.addColorStop(1, "rgba(237, 201, 139, 0)");
+  context.fillStyle = glow;
+  context.fillRect(0, 0, width, 420);
 
   drawAvatarSeal(context, 120, 138, 48, "#f2e2c1", "#5a4a38", "清", "#f7ead3");
 
@@ -798,6 +822,7 @@ function renderMidnightNoteCard(
 
   context.fillStyle = "rgba(208, 193, 164, 0.28)";
   context.fillRect(92, height - 288, width - 184, 1.5);
+  drawFineFrame(context, 68, 74, width - 136, height - 148, "rgba(214, 194, 158, 0.18)", 1.1);
   context.fillStyle = "#d2c1a4";
   context.font = `500 26px ${typography.sans}`;
   context.fillText("QingInvest", 92, height - 190);
@@ -822,11 +847,25 @@ function renderVerticalEditorialCard(
   const authorColumns = [buildVerticalAuthorLabel(username)];
   const rightInfoColumns = [buildVerticalSourceLabel(username), formatDateCnChineseVertical()];
 
-  context.fillStyle = "#1b1d24";
+  const bg = context.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, "#171a21");
+  bg.addColorStop(0.48, "#11141b");
+  bg.addColorStop(1, "#0c0f14");
+  context.fillStyle = bg;
   context.fillRect(0, 0, width, height);
+  drawSoftVignette(context, width, height, "rgba(0, 0, 0, 0.38)");
+  drawPaperTexture(context, 0, 0, width, height, 0.03, "#e4d1ab");
+
+  const topGlow = context.createLinearGradient(0, 92, width, 92);
+  topGlow.addColorStop(0, "rgba(238, 214, 170, 0)");
+  topGlow.addColorStop(0.5, "rgba(238, 214, 170, 0.12)");
+  topGlow.addColorStop(1, "rgba(238, 214, 170, 0)");
+  context.fillStyle = topGlow;
+  context.fillRect(84, 82, width - 168, 28);
 
   drawDistressedBar(context, 84, 92, width - 168, "#d8cbab");
   drawDistressedBar(context, 84, height - 120, width - 168, "#d8cbab");
+  drawFineFrame(context, 60, 60, width - 120, height - 120, "rgba(214, 193, 154, 0.14)", 1);
 
   drawVerticalText(context, titleColumns, 110, 214, {
     color: "#efe0bb",
@@ -917,8 +956,13 @@ function renderSeaCoverCard(
   const typography = getShareTypography(font);
 
   drawSeaBackground(context, 0, 0, width, 730);
-  context.fillStyle = "#f7f7f6";
+  const paper = context.createLinearGradient(0, 730, 0, height);
+  paper.addColorStop(0, "#fbfaf7");
+  paper.addColorStop(1, "#f1ede4");
+  context.fillStyle = paper;
   context.fillRect(0, 730, width, height - 730);
+  drawPaperTexture(context, 0, 730, width, height - 730, 0.075);
+  drawSoftVignette(context, width, height, "rgba(91, 110, 133, 0.07)");
 
   drawVerticalText(context, ["文摘"], 90, 112, {
     color: "#ffffff",
@@ -971,6 +1015,7 @@ function renderSeaCoverCard(
 
   context.fillStyle = "rgba(92, 96, 108, 0.28)";
   context.fillRect(88, height - 302, width - 176, 1.5);
+  drawFineFrame(context, 58, 762, width - 116, height - 820, "rgba(78, 90, 110, 0.13)", 1);
 
   context.fillStyle = "#303644";
   context.font = `600 26px ${typography.sans}`;
@@ -999,8 +1044,14 @@ function renderFramedPaperCard(
   const headerName = username.trim();
   const typography = getShareTypography(font);
 
-  context.fillStyle = "#f5f3ee";
+  const bg = context.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, "#f6f1e8");
+  bg.addColorStop(0.5, "#f1ebdf");
+  bg.addColorStop(1, "#ebe3d4");
+  context.fillStyle = bg;
   context.fillRect(0, 0, width, height);
+  drawPaperTexture(context, 0, 0, width, height, 0.09);
+  drawSoftVignette(context, width, height, "rgba(124, 101, 66, 0.07)");
 
   context.strokeStyle = "#d3cec4";
   context.lineWidth = 4;
@@ -1008,8 +1059,13 @@ function renderFramedPaperCard(
   context.lineWidth = 2;
   context.strokeRect(54, 122, width - 108, height - 244);
 
-  context.fillStyle = "#faf9f6";
+  const paperFill = context.createLinearGradient(0, 122, 0, height - 122);
+  paperFill.addColorStop(0, "#fcfbf8");
+  paperFill.addColorStop(1, "#f6f0e7");
+  context.fillStyle = paperFill;
   context.fillRect(54, 122, width - 108, height - 244);
+  drawPaperTexture(context, 54, 122, width - 108, height - 244, 0.075);
+  drawFineFrame(context, 72, 140, width - 144, height - 280, "rgba(129, 110, 81, 0.1)", 1);
 
   drawAvatarSeal(context, 120, 250, 48, "#3d3933", "#efe6d6", "清", "#ffffff");
 
@@ -1281,6 +1337,72 @@ function drawDistressedBar(
   }
 }
 
+function drawPaperTexture(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  opacity: number,
+  tone = "#6f5b3f"
+) {
+  context.save();
+  context.beginPath();
+  context.rect(x, y, width, height);
+  context.clip();
+
+  for (let index = 0; index < 240; index += 1) {
+    const px = x + ((index * 67) % width);
+    const py = y + ((index * 131) % height);
+    const radius = 0.4 + ((index * 17) % 20) / 20;
+    context.fillStyle = withAlpha(tone, opacity * (0.2 + (index % 5) * 0.12));
+    context.beginPath();
+    context.arc(px, py, radius, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  for (let row = 0; row < 22; row += 1) {
+    const yy = y + (height / 22) * row;
+    context.strokeStyle = withAlpha(tone, opacity * 0.26);
+    context.lineWidth = 0.6;
+    context.beginPath();
+    context.moveTo(x, yy);
+    context.lineTo(x + width, yy + ((row % 3) - 1) * 2);
+    context.stroke();
+  }
+
+  context.restore();
+}
+
+function drawSoftVignette(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  color: string
+) {
+  const vignette = context.createRadialGradient(width / 2, height / 2, width * 0.18, width / 2, height / 2, width * 0.72);
+  vignette.addColorStop(0, "rgba(0,0,0,0)");
+  vignette.addColorStop(1, color);
+  context.fillStyle = vignette;
+  context.fillRect(0, 0, width, height);
+}
+
+function drawFineFrame(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: string,
+  lineWidth: number
+) {
+  context.save();
+  context.strokeStyle = color;
+  context.lineWidth = lineWidth;
+  context.strokeRect(x, y, width, height);
+  context.restore();
+}
+
 function drawSeaBackground(
   context: CanvasRenderingContext2D,
   x: number,
@@ -1293,6 +1415,12 @@ function drawSeaBackground(
   sky.addColorStop(0.38, "#74a8d9");
   sky.addColorStop(1, "#245f93");
   context.fillStyle = sky;
+  context.fillRect(x, y, width, height);
+
+  const sunGlow = context.createRadialGradient(x + width * 0.68, y + 150, 40, x + width * 0.68, y + 150, 220);
+  sunGlow.addColorStop(0, "rgba(255, 238, 196, 0.35)");
+  sunGlow.addColorStop(1, "rgba(255, 238, 196, 0)");
+  context.fillStyle = sunGlow;
   context.fillRect(x, y, width, height);
 
   context.fillStyle = "rgba(255,255,255,0.26)";
@@ -1311,6 +1439,19 @@ function drawSeaBackground(
     }
     context.stroke();
   }
+}
+
+function withAlpha(color: string, alpha: number) {
+  const normalized = Math.max(0, Math.min(1, alpha));
+  if (color.startsWith("#")) {
+    const hex = color.slice(1);
+    const raw = hex.length === 3 ? hex.split("").map((char) => `${char}${char}`).join("") : hex;
+    const r = Number.parseInt(raw.slice(0, 2), 16);
+    const g = Number.parseInt(raw.slice(2, 4), 16);
+    const b = Number.parseInt(raw.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${normalized})`;
+  }
+  return color;
 }
 
 function clampLines(
