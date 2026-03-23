@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { addManagedArticleAnnotation } from "@/lib/client/article-annotations-store";
+import {
+  readUserProfile,
+  USER_PROFILE_STORAGE_KEY,
+  USER_PROFILE_UPDATED_EVENT
+} from "@/lib/client/user-profile-store";
 
 type ArticleSelectionToolbarProps = {
   articleSlug: string;
@@ -30,6 +35,7 @@ type ShareConfig = {
   sourceUrl: string;
   fileName: string;
   style: ShareStyle;
+  username: string;
 };
 
 type ShareAsset = {
@@ -55,6 +61,7 @@ export function ArticleSelectionToolbar({
   const [shareConfig, setShareConfig] = useState<ShareConfig | null>(null);
   const [shareAsset, setShareAsset] = useState<ShareAsset | null>(null);
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [username, setUsername] = useState("");
   const toastTimer = useRef<number | null>(null);
   const generationIdRef = useRef(0);
 
@@ -159,6 +166,28 @@ export function ArticleSelectionToolbar({
   }, [clearSelectionAndHide, updateFromSelection]);
 
   useEffect(() => {
+    const refreshProfile = () => {
+      const profile = readUserProfile();
+      setUsername(profile?.username.trim() || "");
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === USER_PROFILE_STORAGE_KEY) {
+        refreshProfile();
+      }
+    };
+
+    refreshProfile();
+    window.addEventListener(USER_PROFILE_UPDATED_EVENT, refreshProfile as EventListener);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener(USER_PROFILE_UPDATED_EVENT, refreshProfile as EventListener);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (toastTimer.current) {
         window.clearTimeout(toastTimer.current);
@@ -241,7 +270,8 @@ export function ArticleSelectionToolbar({
       title: articleTitle,
       sourceUrl: window.location.href,
       fileName: buildShareImageName(articleTitle),
-      style: shareConfig?.style || "calendar-minimal"
+      style: shareConfig?.style || "calendar-minimal",
+      username
     };
 
     clearSelectionAndHide();
@@ -518,7 +548,8 @@ async function createParagraphShareCard(input: ShareConfig): Promise<Blob | null
     quote,
     title: input.title,
     sourceUrl: input.sourceUrl,
-    style: input.style
+    style: input.style,
+    username: input.username
   });
 
   return await new Promise((resolve) => {
@@ -535,37 +566,38 @@ function renderShareCard(
     title: string;
     sourceUrl: string;
     style: ShareStyle;
+    username: string;
   }
 ) {
-  const { width, height, quote, title, sourceUrl, style } = input;
+  const { width, height, quote, title, sourceUrl, style, username } = input;
   const safeTitle = title.trim() || "未命名文章";
 
   if (style === "midnight-note") {
-    renderMidnightNoteCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    renderMidnightNoteCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
     return;
   }
 
   if (style === "vertical-editorial") {
-    renderVerticalEditorialCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    renderVerticalEditorialCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
     return;
   }
 
   if (style === "sea-cover") {
-    renderSeaCoverCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    renderSeaCoverCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
     return;
   }
 
   if (style === "framed-paper") {
-    renderFramedPaperCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    renderFramedPaperCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
     return;
   }
 
-  renderCalendarMinimalCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+  renderCalendarMinimalCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
 }
 
 function renderCalendarMinimalCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
   const { width, height, quote, title, sourceUrl } = input;
   const dateParts = getCalendarParts();
@@ -619,20 +651,24 @@ function renderCalendarMinimalCard(
 
 function renderMidnightNoteCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
-  const { width, height, quote, title, sourceUrl } = input;
+  const { width, height, quote, title, sourceUrl, username } = input;
+  const headerName = username.trim();
 
   context.fillStyle = "#1c1d24";
   context.fillRect(0, 0, width, height);
 
   drawAvatarSeal(context, 120, 138, 48, "#f2e2c1", "#5a4a38", "清", "#f7ead3");
 
-  context.fillStyle = "#f0dfbd";
-  context.font = '700 56px "Songti SC", "Noto Serif SC", serif';
-  context.fillText("行成于思", 198, 152);
+  if (headerName) {
+    context.fillStyle = "#f0dfbd";
+    context.font = '700 56px "Songti SC", "Noto Serif SC", serif';
+    context.fillText(shortenTitle(headerName, 8), 198, 152);
+  }
+  context.fillStyle = "#d7c7a8";
   context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(`摘录于 ${formatDateCn()}`, 198, 214);
+  context.fillText(`摘录于 ${formatDateCn()}`, 198, headerName ? 214 : 176);
 
   const quoteLayout = fitQuoteLayout(context, quote, 780, [
     { size: 66, lineHeight: 118, maxLines: 5 },
@@ -670,9 +706,9 @@ function renderMidnightNoteCard(
 
 function renderVerticalEditorialCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
-  const { width, height, quote, title, sourceUrl } = input;
+  const { width, height, quote, title, sourceUrl, username } = input;
 
   context.fillStyle = "#1b1d24";
   context.fillRect(0, 0, width, height);
@@ -687,7 +723,10 @@ function renderVerticalEditorialCard(
     columnGap: 32
   });
 
-  drawVerticalText(context, ["QingInvest", "摘录于", formatDateCn(true)], width - 146, 224, {
+  const rightColumns = username.trim()
+    ? [shortenTitle(username.trim(), 4), "摘录于", formatDateCn(true)]
+    : ["摘录于", formatDateCn(true)];
+  drawVerticalText(context, rightColumns, width - 186, 224, {
     color: "#b7aa90",
     font: '500 30px "Songti SC", "Noto Serif SC", serif',
     lineGap: 20,
@@ -697,10 +736,10 @@ function renderVerticalEditorialCard(
   context.strokeStyle = "rgba(207, 193, 163, 0.28)";
   context.lineWidth = 1.5;
   context.beginPath();
-  context.moveTo(width - 196, 220);
-  context.lineTo(width - 196, 720);
-  context.moveTo(width - 276, 220);
-  context.lineTo(width - 276, 720);
+  context.moveTo(width - 156, 220);
+  context.lineTo(width - 156, 720);
+  context.moveTo(width - 236, 220);
+  context.lineTo(width - 236, 720);
   context.stroke();
 
   const quoteLayout = fitQuoteLayout(context, quote, 760, [
@@ -738,9 +777,9 @@ function renderVerticalEditorialCard(
 
 function renderSeaCoverCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
-  const { width, height, quote, title, sourceUrl } = input;
+  const { width, height, quote, title, sourceUrl, username } = input;
 
   drawSeaBackground(context, 0, 0, width, 730);
   context.fillStyle = "#f7f7f6";
@@ -753,12 +792,14 @@ function renderSeaCoverCard(
     columnGap: 30
   });
 
-  drawVerticalText(context, ["QingInvest"], 248, 166, {
-    color: "rgba(255,255,255,0.96)",
-    font: '600 28px "Helvetica Neue", "Arial", sans-serif',
-    lineGap: 20,
-    columnGap: 28
-  });
+  if (username.trim()) {
+    drawVerticalText(context, [shortenTitle(username.trim(), 4)], 248, 166, {
+      color: "rgba(255,255,255,0.96)",
+      font: '600 28px "Helvetica Neue", "Arial", sans-serif',
+      lineGap: 20,
+      columnGap: 28
+    });
+  }
 
   const quoteLayout = fitQuoteLayout(context, quote, 760, [
     { size: 62, lineHeight: 106, maxLines: 5 },
@@ -792,7 +833,8 @@ function renderSeaCoverCard(
 
   context.fillStyle = "#303644";
   context.font = '600 26px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(`QingInvest · 摘录于 ${formatDateCn()}`, 88, height - 188);
+  const footerLead = username.trim() ? `${shortenTitle(username.trim(), 10)} · 摘录于 ${formatDateCn()}` : `摘录于 ${formatDateCn()}`;
+  context.fillText(footerLead, 88, height - 188);
   context.fillStyle = "#696d79";
   context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
   context.fillText(compactUrl(sourceUrl), 88, height - 136);
@@ -800,9 +842,10 @@ function renderSeaCoverCard(
 
 function renderFramedPaperCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
 ) {
-  const { width, height, quote, title, sourceUrl } = input;
+  const { width, height, quote, title, sourceUrl, username } = input;
+  const headerName = username.trim();
 
   context.fillStyle = "#f5f3ee";
   context.fillRect(0, 0, width, height);
@@ -818,11 +861,14 @@ function renderFramedPaperCard(
 
   drawAvatarSeal(context, 120, 250, 48, "#3d3933", "#efe6d6", "清", "#ffffff");
 
-  context.fillStyle = "#5c5349";
-  context.font = '700 54px "Songti SC", "Noto Serif SC", serif';
-  context.fillText("行成于思", 198, 262);
+  if (headerName) {
+    context.fillStyle = "#5c5349";
+    context.font = '700 54px "Songti SC", "Noto Serif SC", serif';
+    context.fillText(shortenTitle(headerName, 8), 198, 262);
+  }
+  context.fillStyle = "#80776d";
   context.font = '400 28px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(`摘录于 ${formatDateCn()}`, 198, 324);
+  context.fillText(`摘录于 ${formatDateCn()}`, 198, headerName ? 324 : 286);
 
   context.strokeStyle = "rgba(115, 106, 94, 0.14)";
   context.lineWidth = 1.5;
