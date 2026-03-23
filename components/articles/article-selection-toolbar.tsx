@@ -30,7 +30,12 @@ type ShareStyle =
   | "sea-cover"
   | "framed-paper";
 
-type ShareFont = "elegant-serif" | "modern-sans" | "classic-song";
+type ShareFont =
+  | "elegant-serif"
+  | "modern-sans"
+  | "classic-song"
+  | "scholar-fangsong"
+  | "print-hei";
 
 type ShareConfig = {
   quote: string;
@@ -59,7 +64,9 @@ const SHARE_STYLE_OPTIONS: Array<{ key: ShareStyle; label: string }> = [
 const SHARE_FONT_OPTIONS: Array<{ key: ShareFont; label: string }> = [
   { key: "elegant-serif", label: "雅致衬线" },
   { key: "modern-sans", label: "现代黑体" },
-  { key: "classic-song", label: "经典宋体" }
+  { key: "classic-song", label: "经典宋体" },
+  { key: "scholar-fangsong", label: "文气仿宋" },
+  { key: "print-hei", label: "印刷黑体" }
 ];
 
 const ARTICLE_AUTHOR_NAME = "清一山长";
@@ -1066,6 +1073,16 @@ ${compactUrl(sourceUrl)}`;
 }
 
 function getShareTypography(font: ShareFont) {
+  if (font === "print-hei") {
+    return {
+      displaySans: '"Arial Narrow", "Avenir Next Condensed", "Helvetica Neue", sans-serif',
+      displaySerif: '"STHeiti", "Heiti SC", "PingFang SC", sans-serif',
+      bodySerif: '"STHeiti", "Heiti SC", "PingFang SC", sans-serif',
+      sans: '"STHeiti", "Heiti SC", "PingFang SC", sans-serif',
+      quoteWeight: 760
+    };
+  }
+
   if (font === "modern-sans") {
     return {
       displaySans: '"Avenir Next", "Helvetica Neue", "Arial", sans-serif',
@@ -1083,6 +1100,16 @@ function getShareTypography(font: ShareFont) {
       bodySerif: '"Songti SC", "STSong", "Noto Serif SC", serif',
       sans: '"Songti SC", "STSong", "Noto Serif SC", serif',
       quoteWeight: 520
+    };
+  }
+
+  if (font === "scholar-fangsong") {
+    return {
+      displaySans: '"Times New Roman", "STFangsong", "FangSong", serif',
+      displaySerif: '"STFangsong", "FangSong", "Songti SC", serif',
+      bodySerif: '"STFangsong", "FangSong", "Songti SC", serif',
+      sans: '"STFangsong", "FangSong", "Songti SC", serif',
+      quoteWeight: 560
     };
   }
 
