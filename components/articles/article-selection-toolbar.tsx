@@ -294,7 +294,7 @@ export function ArticleSelectionToolbar({
             <div className="quote-share-preview-header">
               <div>
                 <p>分享图预览</p>
-                <strong>简约语录卡</strong>
+                <strong>极简书摘卡</strong>
               </div>
               <button type="button" className="quote-share-preview-close" onClick={closeSharePreview}>
                 关闭
@@ -432,75 +432,77 @@ async function createQuoteShareCard(input: {
   if (!context) return null;
 
   const background = context.createLinearGradient(0, 0, 0, height);
-  background.addColorStop(0, "#f7f4ee");
-  background.addColorStop(0.55, "#f4f0e8");
-  background.addColorStop(1, "#efe9df");
+  background.addColorStop(0, "#f8f5ef");
+  background.addColorStop(0.52, "#f4f0e8");
+  background.addColorStop(1, "#eee7dc");
   context.fillStyle = background;
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = "rgba(102, 85, 62, 0.08)";
-  context.fillRect(88, 88, width - 176, 2);
-  context.fillRect(88, height - 90, width - 176, 2);
+  context.fillStyle = "rgba(255, 255, 255, 0.68)";
+  roundRect(context, 64, 64, width - 128, height - 128, 34);
+  context.fill();
 
-  context.strokeStyle = "rgba(96, 80, 58, 0.15)";
-  context.lineWidth = 2;
-  roundRect(context, 72, 72, width - 144, height - 144, 30);
+  context.strokeStyle = "rgba(112, 96, 73, 0.13)";
+  context.lineWidth = 1.5;
+  roundRect(context, 64, 64, width - 128, height - 128, 34);
   context.stroke();
 
-  context.fillStyle = "#2f2b24";
-  context.font = '600 42px "Times New Roman", "Songti SC", serif';
-  context.fillText("QingInvest", 92, 140);
+  context.fillStyle = "#302a23";
+  context.font = '600 36px "Iowan Old Style", "Times New Roman", "Songti SC", serif';
+  context.fillText("QingInvest", 108, 144);
 
-  context.fillStyle = "#8d7d67";
-  context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
   context.textAlign = "right";
-  context.fillText("金句分享", width - 92, 140);
+  context.fillStyle = "#8d7d66";
+  context.font = '500 20px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("书摘分享", width - 108, 142);
   context.textAlign = "left";
 
-  context.fillStyle = "rgba(116, 97, 70, 0.18)";
-  context.font = '700 176px "Georgia", "Times New Roman", serif';
-  context.fillText("“", 104, 310);
+  context.fillStyle = "rgba(121, 103, 79, 0.1)";
+  context.fillRect(108, 176, width - 216, 2);
 
-  const quoteLines = wrapCanvasText(context, quote, width - 224, '600 50px "PingFang SC", "Noto Serif SC", serif');
-  let cursorY = 340;
-  context.fillStyle = "#26221d";
-  context.font = '600 50px "PingFang SC", "Noto Serif SC", serif';
+  context.fillStyle = "rgba(121, 103, 79, 0.12)";
+  context.font = '700 144px "Cormorant Garamond", "Times New Roman", serif';
+  context.fillText("“", 118, 304);
+
+  const quoteLines = wrapCanvasText(context, quote, width - 244, '600 48px "PingFang SC", "Noto Serif SC", serif');
+  let cursorY = 332;
+  context.fillStyle = "#26211b";
+  context.font = '600 48px "PingFang SC", "Noto Serif SC", serif';
   for (const line of quoteLines) {
-    context.fillText(line, 118, cursorY);
-    cursorY += 78;
+    context.fillText(line, 132, cursorY);
+    cursorY += 76;
   }
 
-  cursorY += 30;
+  cursorY += 40;
   context.fillStyle = "#7d6f5b";
-  context.font = '500 24px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("选自", 118, cursorY);
+  context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("选自", 132, cursorY);
 
-  cursorY += 44;
-  const titleLines = wrapCanvasText(context, `《${input.title}》`, width - 224, '600 30px "PingFang SC", "Noto Sans SC", sans-serif');
+  cursorY += 40;
+  const titleLines = wrapCanvasText(context, `《${input.title}》`, width - 244, '600 28px "PingFang SC", "Noto Sans SC", sans-serif');
   context.fillStyle = "#3a342b";
-  context.font = '600 30px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = '600 28px "PingFang SC", "Noto Sans SC", sans-serif';
   for (const line of titleLines.slice(0, 2)) {
-    context.fillText(line, 118, cursorY);
-    cursorY += 46;
+    context.fillText(line, 132, cursorY);
+    cursorY += 42;
   }
 
-  const footerY = height - 212;
-  context.fillStyle = "#6d6253";
-  context.fillRect(118, footerY, 92, 3);
-  context.fillRect(width - 210, footerY, 92, 3);
+  const footerY = height - 220;
+  context.fillStyle = "rgba(121, 103, 79, 0.12)";
+  context.fillRect(108, footerY, width - 216, 2);
 
   context.fillStyle = "#2c2822";
-  context.font = '600 26px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("清一山长投资研究平台", 118, footerY + 60);
+  context.font = '600 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("清一山长投资研究平台", 108, footerY + 54);
 
   context.fillStyle = "#8a7b66";
-  context.font = '500 21px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("保持克制，保持清醒，保持长期主义。", 118, footerY + 104);
+  context.font = '500 20px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("保持克制，保持清醒，保持长期主义。", 108, footerY + 96);
 
   context.textAlign = "right";
   context.fillStyle = "#91826c";
-  context.font = '500 18px "SF Mono", "Menlo", monospace';
-  context.fillText(compactUrl(input.sourceUrl), width - 118, height - 132);
+  context.font = '500 16px "SF Mono", "Menlo", monospace';
+  context.fillText(formatShareStamp(input.sourceUrl), width - 108, height - 126);
   context.textAlign = "left";
 
   return await new Promise((resolve) => {
@@ -548,6 +550,14 @@ function compactUrl(value: string) {
   } catch {
     return value.slice(0, 56);
   }
+}
+
+function formatShareStamp(value: string) {
+  const date = new Date();
+  const yyyy = `${date.getFullYear()}`;
+  const mm = `${date.getMonth() + 1}`.padStart(2, "0");
+  const dd = `${date.getDate()}`.padStart(2, "0");
+  return `${compactUrl(value)}  ·  ${yyyy}.${mm}.${dd}`;
 }
 
 function roundRect(
