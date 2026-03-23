@@ -218,6 +218,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
                   <ArticleSelectionToolbar
                     articleSlug={article.slug}
                     articleTitle={article.title}
+                    articleSeries={article.series}
                     contentRootId="articleBodySection"
                   />
                 ) : null}

@@ -102,6 +102,13 @@ export function ArticleAnnotations({ articleSlug, contentRootId, variant = "defa
     });
   };
 
+  const jumpToAnnotation = useCallback(
+    (quote: string) => {
+      jumpToQuote(contentRootId, quote);
+    },
+    [contentRootId]
+  );
+
   if (variant === "compact") {
     return (
       <div className="compact-annotations">
@@ -129,7 +136,19 @@ export function ArticleAnnotations({ articleSlug, contentRootId, variant = "defa
         ) : (
           <ul className="annotation-list compact">
             {annotations.slice(0, 6).map((item) => (
-              <li className="annotation-item compact" key={item.id}>
+              <li
+                className="annotation-item compact clickable"
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => jumpToAnnotation(item.quote)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    jumpToAnnotation(item.quote);
+                  }
+                }}
+              >
                 <p className="annotation-quote">“{item.quote}”</p>
                 {item.note ? <p className="annotation-note">{item.note}</p> : null}
               </li>
@@ -169,13 +188,33 @@ export function ArticleAnnotations({ articleSlug, contentRootId, variant = "defa
         ) : (
           annotations.map((item) => (
             <li className="annotation-item" key={item.id}>
-              <div className="chip-placeholder-row" style={{ marginTop: 0, marginBottom: 6 }}>
-                <span className="meta-pill">{item.kind === "quote" ? "金句" : "批注"}</span>
+              <div
+                className="annotation-card-trigger"
+                role="button"
+                tabIndex={0}
+                onClick={() => jumpToAnnotation(item.quote)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    jumpToAnnotation(item.quote);
+                  }
+                }}
+              >
+                <div className="chip-placeholder-row" style={{ marginTop: 0, marginBottom: 6 }}>
+                  <span className="meta-pill">{item.kind === "quote" ? "金句" : "批注"}</span>
+                </div>
+                <p className="annotation-quote">“{item.quote}”</p>
+                {item.note ? <p className="annotation-note">{item.note}</p> : null}
               </div>
-              <p className="annotation-quote">“{item.quote}”</p>
-              {item.note ? <p className="annotation-note">{item.note}</p> : null}
               <div className="chip-placeholder-row" style={{ marginTop: 8 }}>
-                <button type="button" className="article-read-btn" onClick={() => removeAnnotation(item)}>
+                <button
+                  type="button"
+                  className="article-read-btn"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    removeAnnotation(item);
+                  }}
+                >
                   删除
                 </button>
               </div>
@@ -185,4 +224,41 @@ export function ArticleAnnotations({ articleSlug, contentRootId, variant = "defa
       </ul>
     </div>
   );
+}
+
+function jumpToQuote(contentRootId: string, quote: string) {
+  const root = document.getElementById(contentRootId);
+  const normalizedQuote = normalizeWhitespace(quote);
+  if (!root || !normalizedQuote) return;
+
+  const candidates = Array.from(root.querySelectorAll("p, li, blockquote, h2, h3, h4, figcaption, td, pre"));
+  const bestTarget = candidates.find((element) => {
+    const text = normalizeWhitespace(element.textContent || "");
+    return text.includes(normalizedQuote) || normalizedQuote.includes(text);
+  });
+
+  const fallbackTarget =
+    bestTarget ||
+    candidates.find((element) => {
+      const text = normalizeWhitespace(element.textContent || "");
+      const prefix = normalizedQuote.slice(0, Math.min(18, normalizedQuote.length));
+      return prefix.length >= 6 && text.includes(prefix);
+    });
+
+  const target = fallbackTarget || root;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  if (target instanceof HTMLElement) {
+    target.classList.remove("article-jump-highlight");
+    window.requestAnimationFrame(() => {
+      target.classList.add("article-jump-highlight");
+      window.setTimeout(() => {
+        target.classList.remove("article-jump-highlight");
+      }, 2200);
+    });
+  }
+}
+
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
 }

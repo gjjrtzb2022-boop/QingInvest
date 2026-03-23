@@ -12,6 +12,7 @@ import {
 type ArticleSelectionToolbarProps = {
   articleSlug: string;
   articleTitle: string;
+  articleSeries?: string;
   contentRootId: string;
 };
 
@@ -29,12 +30,16 @@ type ShareStyle =
   | "sea-cover"
   | "framed-paper";
 
+type ShareFont = "elegant-serif" | "modern-sans" | "classic-song";
+
 type ShareConfig = {
   quote: string;
   title: string;
+  series: string;
   sourceUrl: string;
   fileName: string;
   style: ShareStyle;
+  font: ShareFont;
   username: string;
 };
 
@@ -51,9 +56,16 @@ const SHARE_STYLE_OPTIONS: Array<{ key: ShareStyle; label: string; description: 
   { key: "framed-paper", label: "边框纸页", description: "浅色双框，像装裱后的卡片" }
 ];
 
+const SHARE_FONT_OPTIONS: Array<{ key: ShareFont; label: string; description: string }> = [
+  { key: "elegant-serif", label: "雅致衬线", description: "更接近参考模板的书卷气" },
+  { key: "modern-sans", label: "现代黑体", description: "更利落，适合观点表达" },
+  { key: "classic-song", label: "经典宋体", description: "更像纸质刊物与书摘版面" }
+];
+
 export function ArticleSelectionToolbar({
   articleSlug,
   articleTitle,
+  articleSeries = "",
   contentRootId
 }: ArticleSelectionToolbarProps) {
   const [toolbar, setToolbar] = useState<ToolbarState | null>(null);
@@ -268,9 +280,11 @@ export function ArticleSelectionToolbar({
     const config: ShareConfig = {
       quote: toolbar.text,
       title: articleTitle,
+      series: articleSeries.trim() || articleTitle,
       sourceUrl: window.location.href,
       fileName: buildShareImageName(articleTitle),
       style: shareConfig?.style || "calendar-minimal",
+      font: shareConfig?.font || "elegant-serif",
       username
     };
 
@@ -325,6 +339,17 @@ export function ArticleSelectionToolbar({
   const onChangeShareStyle = useCallback(
     (style: ShareStyle) => {
       setShareConfig((current) => (current ? { ...current, style } : current));
+      setShareAsset((current) => {
+        revokeShareAsset(current);
+        return null;
+      });
+    },
+    [revokeShareAsset]
+  );
+
+  const onChangeShareFont = useCallback(
+    (font: ShareFont) => {
+      setShareConfig((current) => (current ? { ...current, font } : current));
       setShareAsset((current) => {
         revokeShareAsset(current);
         return null;
@@ -390,6 +415,22 @@ export function ArticleSelectionToolbar({
                   aria-selected={shareConfig?.style === item.key}
                   className={`quote-share-style-chip ${shareConfig?.style === item.key ? "active" : ""}`}
                   onClick={() => onChangeShareStyle(item.key)}
+                >
+                  <strong>{item.label}</strong>
+                  <span>{item.description}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="quote-share-font-switch" role="tablist" aria-label="分享字体选择">
+              {SHARE_FONT_OPTIONS.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={shareConfig?.font === item.key}
+                  className={`quote-share-font-chip ${shareConfig?.font === item.key ? "active" : ""}`}
+                  onClick={() => onChangeShareFont(item.key)}
                 >
                   <strong>{item.label}</strong>
                   <span>{item.description}</span>
@@ -547,8 +588,10 @@ async function createParagraphShareCard(input: ShareConfig): Promise<Blob | null
     height,
     quote,
     title: input.title,
+    series: input.series,
     sourceUrl: input.sourceUrl,
     style: input.style,
+    font: input.font,
     username: input.username
   });
 
@@ -564,67 +607,94 @@ function renderShareCard(
     height: number;
     quote: string;
     title: string;
+    series: string;
     sourceUrl: string;
     style: ShareStyle;
+    font: ShareFont;
     username: string;
   }
 ) {
-  const { width, height, quote, title, sourceUrl, style, username } = input;
+  const { width, height, quote, title, series, sourceUrl, style, font, username } = input;
   const safeTitle = title.trim() || "未命名文章";
+  const safeSeries = series.trim() || safeTitle;
 
   if (style === "midnight-note") {
-    renderMidnightNoteCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
+    renderMidnightNoteCard(context, { width, height, quote, title: safeTitle, sourceUrl, username, font });
     return;
   }
 
   if (style === "vertical-editorial") {
-    renderVerticalEditorialCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
+    renderVerticalEditorialCard(context, {
+      width,
+      height,
+      quote,
+      title: safeTitle,
+      series: safeSeries,
+      sourceUrl,
+      username,
+      font
+    });
     return;
   }
 
   if (style === "sea-cover") {
-    renderSeaCoverCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
+    renderSeaCoverCard(context, { width, height, quote, title: safeTitle, sourceUrl, username, font });
     return;
   }
 
   if (style === "framed-paper") {
-    renderFramedPaperCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
+    renderFramedPaperCard(context, { width, height, quote, title: safeTitle, sourceUrl, username, font });
     return;
   }
 
-  renderCalendarMinimalCard(context, { width, height, quote, title: safeTitle, sourceUrl, username });
+  renderCalendarMinimalCard(context, { width, height, quote, title: safeTitle, sourceUrl, username, font });
 }
 
 function renderCalendarMinimalCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
+  input: {
+    width: number;
+    height: number;
+    quote: string;
+    title: string;
+    sourceUrl: string;
+    username: string;
+    font: ShareFont;
+  }
 ) {
-  const { width, height, quote, title, sourceUrl } = input;
+  const { width, height, quote, title, sourceUrl, font } = input;
   const dateParts = getCalendarParts();
+  const typography = getShareTypography(font);
 
   context.fillStyle = "#f8f7f4";
   context.fillRect(0, 0, width, height);
 
   context.textAlign = "center";
   context.fillStyle = "#2b1a11";
-  context.font = '700 220px "Helvetica Neue", "Arial", sans-serif';
+  context.font = `700 220px ${typography.displaySans}`;
   context.fillText(dateParts.day, width / 2, 300);
 
-  context.font = '700 62px "Helvetica Neue", "Arial", sans-serif';
+  context.font = `700 62px ${typography.displaySans}`;
   context.fillText(`${dateParts.monthUpper} ${dateParts.year}`, width / 2, 420);
 
   context.fillStyle = "#4f4238";
-  context.font = '500 34px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 34px ${typography.sans}`;
   context.fillText(dateParts.weekday, width / 2, 498);
 
   context.fillStyle = "rgba(88, 79, 72, 0.36)";
   context.fillRect(width / 2 - 70, 610, 140, 2);
 
-  const quoteLayout = fitQuoteLayout(context, quote, 760, [
-    { size: 62, lineHeight: 104, maxLines: 6 },
-    { size: 56, lineHeight: 96, maxLines: 7 },
-    { size: 50, lineHeight: 88, maxLines: 8 }
-  ]);
+  const quoteLayout = fitQuoteLayout(
+    context,
+    quote,
+    760,
+    [
+      { size: 62, lineHeight: 104, maxLines: 6 },
+      { size: 56, lineHeight: 96, maxLines: 7 },
+      { size: 50, lineHeight: 88, maxLines: 8 }
+    ],
+    typography.bodySerif
+  );
 
   context.fillStyle = "#2b1a11";
   context.font = quoteLayout.font;
@@ -637,24 +707,33 @@ function renderCalendarMinimalCard(
   }
 
   context.fillStyle = "#463a31";
-  context.font = '500 46px "Songti SC", "Noto Serif SC", serif';
+  context.font = `500 46px ${typography.bodySerif}`;
   context.fillText(`《${shortenTitle(title, 14)}》`, width / 2, height - 260);
 
-  context.font = '400 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `400 28px ${typography.sans}`;
   context.fillText(formatShareStamp(sourceUrl), width / 2, height - 206);
 
   context.fillStyle = "rgba(97, 90, 84, 0.75)";
-  context.font = '400 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `400 24px ${typography.sans}`;
   context.fillText("QingInvest", width / 2, height - 116);
   context.textAlign = "left";
 }
 
 function renderMidnightNoteCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
+  input: {
+    width: number;
+    height: number;
+    quote: string;
+    title: string;
+    sourceUrl: string;
+    username: string;
+    font: ShareFont;
+  }
 ) {
-  const { width, height, quote, title, sourceUrl, username } = input;
+  const { width, height, quote, title, username, font } = input;
   const headerName = username.trim();
+  const typography = getShareTypography(font);
 
   context.fillStyle = "#1c1d24";
   context.fillRect(0, 0, width, height);
@@ -663,18 +742,24 @@ function renderMidnightNoteCard(
 
   if (headerName) {
     context.fillStyle = "#f0dfbd";
-    context.font = '700 56px "Songti SC", "Noto Serif SC", serif';
+    context.font = `700 56px ${typography.bodySerif}`;
     context.fillText(shortenTitle(headerName, 8), 198, 152);
   }
   context.fillStyle = "#d7c7a8";
-  context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 30px ${typography.sans}`;
   context.fillText(`摘录于 ${formatDateCn()}`, 198, headerName ? 214 : 176);
 
-  const quoteLayout = fitQuoteLayout(context, quote, 780, [
-    { size: 66, lineHeight: 118, maxLines: 5 },
-    { size: 60, lineHeight: 108, maxLines: 6 },
-    { size: 54, lineHeight: 96, maxLines: 7 }
-  ]);
+  const quoteLayout = fitQuoteLayout(
+    context,
+    quote,
+    780,
+    [
+      { size: 66, lineHeight: 118, maxLines: 5 },
+      { size: 60, lineHeight: 108, maxLines: 6 },
+      { size: 54, lineHeight: 96, maxLines: 7 }
+    ],
+    typography.bodySerif
+  );
 
   context.fillStyle = "#f0dfbd";
   context.font = quoteLayout.font;
@@ -685,7 +770,7 @@ function renderMidnightNoteCard(
   }
 
   context.fillStyle = "#d2c1a4";
-  context.font = '500 34px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 34px ${typography.sans}`;
   const sourceLines = clampLines(
     context,
     wrapCanvasText(context, `/ ${shortenTitle(title, 28)}`, 780, context.font),
@@ -700,17 +785,28 @@ function renderMidnightNoteCard(
   context.fillStyle = "rgba(208, 193, 164, 0.28)";
   context.fillRect(92, height - 288, width - 184, 1.5);
   context.fillStyle = "#d2c1a4";
-  context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 26px ${typography.sans}`;
   context.fillText("QingInvest", 92, height - 190);
 }
 
 function renderVerticalEditorialCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
+  input: {
+    width: number;
+    height: number;
+    quote: string;
+    title: string;
+    series: string;
+    sourceUrl: string;
+    username: string;
+    font: ShareFont;
+  }
 ) {
-  const { width, height, quote, title, username } = input;
-  const verticalTitleColumns = buildVerticalHeadlineColumns(title);
-  const authorColumns = buildVerticalAuthorColumns(username);
+  const { width, height, quote, series, username, font } = input;
+  const typography = getShareTypography(font);
+  const titleColumns = [buildVerticalMainSeries(series)];
+  const authorColumns = [buildVerticalAuthorLabel(username)];
+  const rightInfoColumns = [buildVerticalSourceLabel(username), formatDateCnChineseVertical()];
 
   context.fillStyle = "#1b1d24";
   context.fillRect(0, 0, width, height);
@@ -718,18 +814,18 @@ function renderVerticalEditorialCard(
   drawDistressedBar(context, 84, 92, width - 168, "#d8cbab");
   drawDistressedBar(context, 84, height - 120, width - 168, "#d8cbab");
 
-  drawVerticalText(context, verticalTitleColumns, 100, 212, {
+  drawVerticalText(context, titleColumns, 110, 214, {
     color: "#efe0bb",
-    font: '700 74px "PingFang SC", "Noto Sans SC", sans-serif',
+    font: `700 74px ${typography.displaySerif}`,
     lineGap: 18,
-    columnGap: 32
+    columnGap: 0
   });
 
-  drawVerticalText(context, authorColumns, 248, 214, {
+  drawVerticalText(context, authorColumns, 240, 214, {
     color: "#dbcba8",
-    font: '600 34px "PingFang SC", "Noto Sans SC", sans-serif',
+    font: `600 34px ${typography.sans}`,
     lineGap: 16,
-    columnGap: 26
+    columnGap: 0
   });
 
   context.strokeStyle = "rgba(207, 193, 163, 0.28)";
@@ -741,18 +837,24 @@ function renderVerticalEditorialCard(
   context.lineTo(width - 254, 718);
   context.stroke();
 
-  drawVerticalText(context, [formatDateCn(true), "摘录于"], width - 236, 248, {
+  drawVerticalText(context, rightInfoColumns, width - 236, 248, {
     color: "#b7aa90",
-    font: '500 28px "Songti SC", "Noto Serif SC", serif',
+    font: `500 28px ${typography.bodySerif}`,
     lineGap: 16,
     columnGap: 44
   });
 
-  const quoteLayout = fitQuoteLayout(context, quote, 760, [
-    { size: 62, lineHeight: 104, maxLines: 6 },
-    { size: 56, lineHeight: 94, maxLines: 7 },
-    { size: 50, lineHeight: 86, maxLines: 8 }
-  ]);
+  const quoteLayout = fitQuoteLayout(
+    context,
+    quote,
+    760,
+    [
+      { size: 62, lineHeight: 104, maxLines: 6 },
+      { size: 56, lineHeight: 94, maxLines: 7 },
+      { size: 50, lineHeight: 86, maxLines: 8 }
+    ],
+    typography.bodySerif
+  );
 
   context.fillStyle = "#efe0bb";
   context.font = quoteLayout.font;
@@ -763,8 +865,8 @@ function renderVerticalEditorialCard(
   }
 
   context.fillStyle = "#d7c7a8";
-  context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
-  const sourceText = `/ ${shortenTitle(title, 26)}`;
+  context.font = `500 30px ${typography.sans}`;
+  const sourceText = `/ ${shortenTitle(series, 26)}`;
   const sourceLines = clampLines(
     context,
     wrapCanvasText(context, sourceText, 760, context.font),
@@ -776,42 +878,59 @@ function renderVerticalEditorialCard(
     context.fillText(line, 94, cursorY + 24 + index * 42);
   }
 
+  context.fillStyle = "rgba(213, 199, 168, 0.28)";
+  context.fillRect(94, height - 302, width - 188, 1.5);
+
   context.fillStyle = "#d7c7a8";
-  context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 26px ${typography.sans}`;
   context.fillText("QingInvest", 94, height - 188);
 }
 
 function renderSeaCoverCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
+  input: {
+    width: number;
+    height: number;
+    quote: string;
+    title: string;
+    sourceUrl: string;
+    username: string;
+    font: ShareFont;
+  }
 ) {
-  const { width, height, quote, title, username } = input;
-  const verticalTitleColumns = buildVerticalHeadlineColumns(title);
+  const { width, height, quote, title, username, font } = input;
+  const typography = getShareTypography(font);
 
   drawSeaBackground(context, 0, 0, width, 730);
   context.fillStyle = "#f7f7f6";
   context.fillRect(0, 730, width, height - 730);
 
-  drawVerticalText(context, verticalTitleColumns, 92, 150, {
+  drawVerticalText(context, ["文摘"], 90, 112, {
     color: "#ffffff",
-    font: '700 70px "PingFang SC", "Noto Sans SC", sans-serif',
-    lineGap: 18,
-    columnGap: 30
+    font: `700 52px ${typography.displaySerif}`,
+    lineGap: 16,
+    columnGap: 0
   });
 
   if (username.trim()) {
     context.textAlign = "right";
     context.fillStyle = "rgba(255,255,255,0.96)";
-    context.font = '600 22px "PingFang SC", "Noto Sans SC", sans-serif';
+    context.font = `600 22px ${typography.sans}`;
     context.fillText(shortenTitle(username.trim(), 12), width - 88, 132);
     context.textAlign = "left";
   }
 
-  const quoteLayout = fitQuoteLayout(context, quote, 760, [
-    { size: 62, lineHeight: 106, maxLines: 5 },
-    { size: 56, lineHeight: 96, maxLines: 6 },
-    { size: 50, lineHeight: 88, maxLines: 7 }
-  ]);
+  const quoteLayout = fitQuoteLayout(
+    context,
+    quote,
+    760,
+    [
+      { size: 62, lineHeight: 106, maxLines: 5 },
+      { size: 56, lineHeight: 96, maxLines: 6 },
+      { size: 50, lineHeight: 88, maxLines: 7 }
+    ],
+    typography.bodySerif
+  );
 
   context.fillStyle = "#1d2230";
   context.font = quoteLayout.font;
@@ -822,7 +941,7 @@ function renderSeaCoverCard(
   }
 
   context.fillStyle = "#4a4f5c";
-  context.font = '500 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 28px ${typography.sans}`;
   const sourceLines = clampLines(
     context,
     wrapCanvasText(context, `/ ${shortenTitle(title, 28)}`, 780, context.font),
@@ -838,22 +957,31 @@ function renderSeaCoverCard(
   context.fillRect(88, height - 302, width - 176, 1.5);
 
   context.fillStyle = "#303644";
-  context.font = '600 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `600 26px ${typography.sans}`;
   const footerLead = username.trim()
     ? `${shortenTitle(username.trim(), 10)} · 摘录于 ${formatDateCn()}`
     : `摘录于 ${formatDateCn()}`;
   context.fillText(footerLead, 88, height - 188);
   context.fillStyle = "#696d79";
-  context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `500 22px ${typography.sans}`;
   context.fillText("QingInvest", 88, height - 136);
 }
 
 function renderFramedPaperCard(
   context: CanvasRenderingContext2D,
-  input: { width: number; height: number; quote: string; title: string; sourceUrl: string; username: string }
+  input: {
+    width: number;
+    height: number;
+    quote: string;
+    title: string;
+    sourceUrl: string;
+    username: string;
+    font: ShareFont;
+  }
 ) {
-  const { width, height, quote, title, sourceUrl, username } = input;
+  const { width, height, quote, title, sourceUrl, username, font } = input;
   const headerName = username.trim();
+  const typography = getShareTypography(font);
 
   context.fillStyle = "#f5f3ee";
   context.fillRect(0, 0, width, height);
@@ -871,11 +999,11 @@ function renderFramedPaperCard(
 
   if (headerName) {
     context.fillStyle = "#5c5349";
-    context.font = '700 54px "Songti SC", "Noto Serif SC", serif';
+    context.font = `700 54px ${typography.bodySerif}`;
     context.fillText(shortenTitle(headerName, 8), 198, 262);
   }
   context.fillStyle = "#80776d";
-  context.font = '400 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `400 28px ${typography.sans}`;
   context.fillText(`摘录于 ${formatDateCn()}`, 198, headerName ? 324 : 286);
 
   context.strokeStyle = "rgba(115, 106, 94, 0.14)";
@@ -887,11 +1015,17 @@ function renderFramedPaperCard(
   context.lineTo(width - 54, 1140);
   context.stroke();
 
-  const quoteLayout = fitQuoteLayout(context, quote, 730, [
-    { size: 60, lineHeight: 110, maxLines: 5 },
-    { size: 54, lineHeight: 100, maxLines: 6 },
-    { size: 48, lineHeight: 88, maxLines: 7 }
-  ]);
+  const quoteLayout = fitQuoteLayout(
+    context,
+    quote,
+    730,
+    [
+      { size: 60, lineHeight: 110, maxLines: 5 },
+      { size: 54, lineHeight: 100, maxLines: 6 },
+      { size: 48, lineHeight: 88, maxLines: 7 }
+    ],
+    typography.bodySerif
+  );
 
   context.fillStyle = "#2a1f18";
   context.font = quoteLayout.font;
@@ -902,8 +1036,9 @@ function renderFramedPaperCard(
   }
 
   context.fillStyle = "#5f564d";
-  context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
-  const sourceText = `${shortenTitle(title, 28)}\n${compactUrl(sourceUrl)}`;
+  context.font = `500 30px ${typography.sans}`;
+  const sourceText = `${shortenTitle(title, 28)}
+${compactUrl(sourceUrl)}`;
   const sourceLines = clampLines(
     context,
     wrapCanvasText(context, sourceText, 760, context.font),
@@ -916,16 +1051,45 @@ function renderFramedPaperCard(
   }
 
   context.fillStyle = "#7b7268";
-  context.font = '400 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.font = `400 24px ${typography.sans}`;
   context.fillText("QingInvest", 88, 1328);
+}
+
+function getShareTypography(font: ShareFont) {
+  if (font === "modern-sans") {
+    return {
+      displaySans: '"Helvetica Neue", "Arial", sans-serif',
+      displaySerif: '"PingFang SC", "Noto Sans SC", sans-serif',
+      bodySerif: '"PingFang SC", "Noto Sans SC", sans-serif',
+      sans: '"PingFang SC", "Noto Sans SC", sans-serif'
+    };
+  }
+
+  if (font === "classic-song") {
+    return {
+      displaySans: '"Helvetica Neue", "Arial", sans-serif',
+      displaySerif: '"Songti SC", "STSong", "Noto Serif SC", serif',
+      bodySerif: '"Songti SC", "STSong", "Noto Serif SC", serif',
+      sans: '"Songti SC", "STSong", "Noto Serif SC", serif'
+    };
+  }
+
+  return {
+    displaySans: '"Helvetica Neue", "Arial", sans-serif',
+    displaySerif: '"Iowan Old Style", "Songti SC", "Noto Serif SC", serif',
+    bodySerif: '"Songti SC", "Noto Serif SC", serif',
+    sans: '"PingFang SC", "Noto Sans SC", sans-serif'
+  };
 }
 
 function fitQuoteLayout(
   context: CanvasRenderingContext2D,
   quote: string,
   maxWidth: number,
-  options?: Array<{ size: number; lineHeight: number; maxLines: number }>
+  options?: Array<{ size: number; lineHeight: number; maxLines: number }>,
+  fontFamily?: string
 ) {
+  const family = fontFamily || '"PingFang SC", "Noto Serif SC", serif';
   const presets =
     options ||
     [
@@ -937,7 +1101,7 @@ function fitQuoteLayout(
     ];
 
   for (const option of presets) {
-    const font = `600 ${option.size}px "PingFang SC", "Noto Serif SC", serif`;
+    const font = `600 ${option.size}px ${family}`;
     const lines = wrapCanvasText(context, quote, maxWidth, font);
     if (lines.length <= option.maxLines) {
       return {
@@ -948,7 +1112,7 @@ function fitQuoteLayout(
     }
   }
 
-  const fallbackFont = '600 42px "PingFang SC", "Noto Serif SC", serif';
+  const fallbackFont = `600 42px ${family}`;
   const fallbackLines = wrapCanvasText(context, quote, maxWidth, fallbackFont);
   return {
     font: fallbackFont,
@@ -975,34 +1139,40 @@ function formatDateCn(vertical = false) {
   return vertical ? `${yyyy}年${mm}月${dd}日` : `${yyyy}/${mm}/${dd}`;
 }
 
+function formatDateCnChineseVertical() {
+  const date = new Date();
+  return `${toChineseDigits(date.getFullYear())}年·${toChineseDigits(date.getMonth() + 1)}月·${toChineseDigits(date.getDate())}日`;
+}
+
+function toChineseDigits(value: number) {
+  const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  return `${value}`
+    .split("")
+    .map((char) => map[Number(char)] || char)
+    .join("");
+}
+
 function shortenTitle(title: string, maxChars: number) {
   if (title.length <= maxChars) return title;
   return `${title.slice(0, maxChars)}…`;
 }
 
-function titleToVerticalColumns(title: string) {
-  const compact = title.replace(/[《》/·•,:：，。、“”‘’\-\s]/g, "");
-  const safe = compact.length > 10 ? compact.slice(0, 10) : compact;
-  return safe.match(/.{1,4}/g) || [safe || "文章摘录"];
-}
-
-function buildVerticalHeadlineColumns(title: string) {
-  const normalized = title.trim();
+function buildVerticalMainSeries(series: string) {
+  const normalized = series.trim().replace(/[《》【】「」『』]/g, "");
   const chineseOnly = normalized.replace(/[^\u4e00-\u9fff]/g, "");
-  if (/\d/.test(normalized) || chineseOnly.length < 4) {
-    return ["文章", "摘录"];
-  }
-  return titleToVerticalColumns(chineseOnly);
+  const compact = (chineseOnly || normalized.replace(/[\s/·•,:：，。、“”‘’\-]/g, "")).trim();
+  return (compact || "文章摘录").slice(0, 8);
 }
 
-function buildVerticalAuthorColumns(username: string) {
-  const author = username.trim() || "QingInvest";
-  const cleaned = author.replace(/\s+/g, "");
-  if (/^[A-Za-z]+$/.test(cleaned)) {
-    return ["Qing", "Invest"];
-  }
-  const safe = cleaned.slice(0, 8);
-  return safe.match(/.{1,2}/g) || ["清一", "投资"];
+function buildVerticalAuthorLabel(username: string) {
+  const normalized = username.trim().replace(/\s+/g, "");
+  if (!normalized) return "";
+  return shortenTitle(normalized, /^[A-Za-z]+$/.test(normalized) ? 12 : 6);
+}
+
+function buildVerticalSourceLabel(username: string) {
+  const normalized = username.trim().replace(/\s+/g, "");
+  return normalized ? `${shortenTitle(normalized, 8)}·摘录于` : "摘录于";
 }
 
 function drawVerticalText(
@@ -1181,23 +1351,6 @@ function formatShareStamp(value: string) {
   const mm = `${date.getMonth() + 1}`.padStart(2, "0");
   const dd = `${date.getDate()}`.padStart(2, "0");
   return `${compactUrl(value)} · ${yyyy}.${mm}.${dd}`;
-}
-
-function roundRect(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number
-) {
-  context.beginPath();
-  context.moveTo(x + radius, y);
-  context.arcTo(x + width, y, x + width, y + height, radius);
-  context.arcTo(x + width, y + height, x, y + height, radius);
-  context.arcTo(x, y + height, x, y, radius);
-  context.arcTo(x, y, x + width, y, radius);
-  context.closePath();
 }
 
 function IconNote() {
