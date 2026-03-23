@@ -3315,7 +3315,7 @@ select {
 }
 
 .quote-share-preview-modal {
-  width: min(560px, calc(100vw - 32px));
+  width: min(540px, calc(100vw - 32px));
   max-height: calc(100vh - 40px);
   border-radius: 28px;
   border: 1px solid rgba(219, 210, 194, 0.92);
@@ -3361,18 +3361,63 @@ select {
   cursor: pointer;
 }
 
+.quote-share-style-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quote-share-style-chip {
+  border: 1px solid rgba(214, 204, 188, 0.92);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 12px 13px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.quote-share-style-chip strong {
+  color: #2f2b24;
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.quote-share-style-chip span {
+  color: #7c715f;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.quote-share-style-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(172, 148, 109, 0.45);
+}
+
+.quote-share-style-chip.active {
+  border-color: rgba(148, 121, 78, 0.68);
+  background: linear-gradient(180deg, rgba(255, 253, 249, 0.95) 0%, rgba(246, 240, 229, 0.96) 100%);
+  box-shadow: 0 10px 24px rgba(43, 34, 20, 0.08);
+}
+
 .quote-share-preview-canvas-shell {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(224, 216, 201, 0.96);
-  padding: 16px;
+  padding: 14px;
   display: grid;
   place-items: center;
   overflow: auto;
 }
 
 .quote-share-preview-image {
-  width: min(100%, 320px);
+  width: min(100%, 280px);
   height: auto;
   display: block;
   border-radius: 20px;
@@ -5983,6 +6028,25 @@ select {
   background: rgba(20, 28, 40, 0.9);
 }
 
+:root[data-theme="dark"] .quote-share-style-chip {
+  border-color: #334256;
+  background: rgba(20, 28, 40, 0.88);
+}
+
+:root[data-theme="dark"] .quote-share-style-chip strong {
+  color: #edf3fb;
+}
+
+:root[data-theme="dark"] .quote-share-style-chip span {
+  color: #9db0c6;
+}
+
+:root[data-theme="dark"] .quote-share-style-chip.active {
+  border-color: #d3a96d;
+  background: linear-gradient(180deg, rgba(28, 38, 54, 0.96) 0%, rgba(20, 29, 41, 0.98) 100%);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+}
+
 :root[data-theme="dark"] .quote-share-preview-loading strong {
   color: #edf3fb;
 }
@@ -6423,6 +6487,10 @@ select {
     width: min(100vw - 16px, 720px);
     padding: 16px;
     border-radius: 22px;
+  }
+
+  .quote-share-style-switch {
+    grid-template-columns: 1fr;
   }
 
   .quote-share-preview-actions {
