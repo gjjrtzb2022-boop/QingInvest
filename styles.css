@@ -3323,7 +3323,9 @@ select {
   box-shadow: 0 28px 80px rgba(20, 25, 36, 0.26);
   padding: 22px;
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 18px;
+  overflow: hidden;
 }
 
 .quote-share-preview-header {
@@ -3420,10 +3422,13 @@ select {
   display: grid;
   place-items: center;
   overflow: auto;
+  min-height: 0;
+  max-height: min(46vh, 640px);
 }
 
 .quote-share-preview-image {
   width: min(100%, 280px);
+  max-height: min(42vh, 560px);
   height: auto;
   display: block;
   border-radius: 20px;
@@ -3472,6 +3477,8 @@ select {
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
+  padding-top: 2px;
+  border-top: 1px solid rgba(214, 204, 188, 0.4);
 }
 
 .quote-share-preview-btn {
