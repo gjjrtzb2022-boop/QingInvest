@@ -3323,8 +3323,8 @@ select {
   box-shadow: 0 28px 80px rgba(20, 25, 36, 0.26);
   padding: 22px;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  gap: 18px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 12px;
   overflow: hidden;
 }
 
@@ -3364,27 +3364,28 @@ select {
 }
 
 .quote-share-style-switch {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   min-width: 0;
 }
 
 .quote-share-font-switch {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   min-width: 0;
 }
 
 .quote-share-style-chip {
   border: 1px solid rgba(214, 204, 188, 0.92);
-  border-radius: 18px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
-  padding: 12px 13px;
-  display: grid;
-  gap: 4px;
-  text-align: left;
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   cursor: pointer;
   min-width: 0;
   overflow: hidden;
@@ -3397,16 +3398,9 @@ select {
 
 .quote-share-style-chip strong {
   color: #2f2b24;
-  font-size: 0.82rem;
-  font-weight: 760;
+  font-size: 0.74rem;
+  font-weight: 740;
   line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
-.quote-share-style-chip span {
-  color: #7c715f;
-  font-size: 0.68rem;
-  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
@@ -3421,14 +3415,31 @@ select {
   box-shadow: 0 10px 24px rgba(43, 34, 20, 0.08);
 }
 
+.quote-share-footer-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.quote-share-footer-label {
+  flex: 0 0 auto;
+  color: #897964;
+  font-size: 0.7rem;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+}
+
 .quote-share-font-chip {
   border: 1px solid rgba(214, 204, 188, 0.82);
-  border-radius: 16px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.62);
-  padding: 10px 12px;
-  display: grid;
-  gap: 4px;
-  text-align: left;
+  padding: 7px 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   cursor: pointer;
   min-width: 0;
   overflow: hidden;
@@ -3441,16 +3452,9 @@ select {
 
 .quote-share-font-chip strong {
   color: #2f2b24;
-  font-size: 0.78rem;
-  font-weight: 760;
+  font-size: 0.7rem;
+  font-weight: 730;
   line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
-.quote-share-font-chip span {
-  color: #7c715f;
-  font-size: 0.65rem;
-  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
@@ -6130,7 +6134,8 @@ select {
 
 :root[data-theme="dark"] .quote-share-preview-header p,
 :root[data-theme="dark"] .quote-share-preview-close,
-:root[data-theme="dark"] .quote-share-preview-btn.subtle {
+:root[data-theme="dark"] .quote-share-preview-btn.subtle,
+:root[data-theme="dark"] .quote-share-footer-label {
   color: #aab8ca;
 }
 
@@ -6166,10 +6171,6 @@ select {
 
 :root[data-theme="dark"] .quote-share-font-chip strong {
   color: #edf3fb;
-}
-
-:root[data-theme="dark"] .quote-share-style-chip span {
-  color: #9db0c6;
 }
 
 :root[data-theme="dark"] .quote-share-font-chip span {
@@ -6646,11 +6647,12 @@ select {
   }
 
   .quote-share-style-switch {
-    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
-  .quote-share-font-switch {
-    grid-template-columns: 1fr;
+  .quote-share-footer-tools {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .quote-share-preview-actions {

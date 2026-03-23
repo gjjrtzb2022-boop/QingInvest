@@ -48,19 +48,21 @@ type ShareAsset = {
   url: string;
 };
 
-const SHARE_STYLE_OPTIONS: Array<{ key: ShareStyle; label: string; description: string }> = [
-  { key: "calendar-minimal", label: "日历留白", description: "像微信读书日历页，极简留白" },
-  { key: "midnight-note", label: "夜色摘录", description: "深色沉稳，上方信息轻、正文重" },
-  { key: "vertical-editorial", label: "竖排刊页", description: "更接近海报感，适合强主题段落" },
-  { key: "sea-cover", label: "海面封页", description: "上图下文，视觉更轻盈" },
-  { key: "framed-paper", label: "边框纸页", description: "浅色双框，像装裱后的卡片" }
+const SHARE_STYLE_OPTIONS: Array<{ key: ShareStyle; label: string }> = [
+  { key: "calendar-minimal", label: "日历留白" },
+  { key: "midnight-note", label: "夜色摘录" },
+  { key: "vertical-editorial", label: "竖排刊页" },
+  { key: "sea-cover", label: "海面封页" },
+  { key: "framed-paper", label: "边框纸页" }
 ];
 
-const SHARE_FONT_OPTIONS: Array<{ key: ShareFont; label: string; description: string }> = [
-  { key: "elegant-serif", label: "雅致衬线", description: "更接近参考模板的书卷气" },
-  { key: "modern-sans", label: "现代黑体", description: "更利落，适合观点表达" },
-  { key: "classic-song", label: "经典宋体", description: "更像纸质刊物与书摘版面" }
+const SHARE_FONT_OPTIONS: Array<{ key: ShareFont; label: string }> = [
+  { key: "elegant-serif", label: "雅致衬线" },
+  { key: "modern-sans", label: "现代黑体" },
+  { key: "classic-song", label: "经典宋体" }
 ];
+
+const ARTICLE_AUTHOR_NAME = "清一山长";
 
 export function ArticleSelectionToolbar({
   articleSlug,
@@ -415,25 +417,9 @@ export function ArticleSelectionToolbar({
                   aria-selected={shareConfig?.style === item.key}
                   className={`quote-share-style-chip ${shareConfig?.style === item.key ? "active" : ""}`}
                   onClick={() => onChangeShareStyle(item.key)}
+                  title={item.label}
                 >
                   <strong>{item.label}</strong>
-                  <span>{item.description}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="quote-share-font-switch" role="tablist" aria-label="分享字体选择">
-              {SHARE_FONT_OPTIONS.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={shareConfig?.font === item.key}
-                  className={`quote-share-font-chip ${shareConfig?.font === item.key ? "active" : ""}`}
-                  onClick={() => onChangeShareFont(item.key)}
-                >
-                  <strong>{item.label}</strong>
-                  <span>{item.description}</span>
                 </button>
               ))}
             </div>
@@ -448,6 +434,25 @@ export function ArticleSelectionToolbar({
               ) : (
                 <img src={shareAsset.url} alt="文章段落分享图预览" className="quote-share-preview-image" />
               )}
+            </div>
+
+            <div className="quote-share-footer-tools">
+              <span className="quote-share-footer-label">字体</span>
+              <div className="quote-share-font-switch" role="tablist" aria-label="分享字体选择">
+                {SHARE_FONT_OPTIONS.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={shareConfig?.font === item.key}
+                    className={`quote-share-font-chip ${shareConfig?.font === item.key ? "active" : ""}`}
+                    onClick={() => onChangeShareFont(item.key)}
+                    title={item.label}
+                  >
+                    <strong>{item.label}</strong>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="quote-share-preview-actions">
@@ -693,7 +698,8 @@ function renderCalendarMinimalCard(
       { size: 56, lineHeight: 96, maxLines: 7 },
       { size: 50, lineHeight: 88, maxLines: 8 }
     ],
-    typography.bodySerif
+    typography.bodySerif,
+    typography.quoteWeight
   );
 
   context.fillStyle = "#2b1a11";
@@ -758,7 +764,8 @@ function renderMidnightNoteCard(
       { size: 60, lineHeight: 108, maxLines: 6 },
       { size: 54, lineHeight: 96, maxLines: 7 }
     ],
-    typography.bodySerif
+    typography.bodySerif,
+    typography.quoteWeight
   );
 
   context.fillStyle = "#f0dfbd";
@@ -853,7 +860,8 @@ function renderVerticalEditorialCard(
       { size: 56, lineHeight: 94, maxLines: 7 },
       { size: 50, lineHeight: 86, maxLines: 8 }
     ],
-    typography.bodySerif
+    typography.bodySerif,
+    typography.quoteWeight
   );
 
   context.fillStyle = "#efe0bb";
@@ -929,7 +937,8 @@ function renderSeaCoverCard(
       { size: 56, lineHeight: 96, maxLines: 6 },
       { size: 50, lineHeight: 88, maxLines: 7 }
     ],
-    typography.bodySerif
+    typography.bodySerif,
+    typography.quoteWeight
   );
 
   context.fillStyle = "#1d2230";
@@ -1024,7 +1033,8 @@ function renderFramedPaperCard(
       { size: 54, lineHeight: 100, maxLines: 6 },
       { size: 48, lineHeight: 88, maxLines: 7 }
     ],
-    typography.bodySerif
+    typography.bodySerif,
+    typography.quoteWeight
   );
 
   context.fillStyle = "#2a1f18";
@@ -1058,27 +1068,30 @@ ${compactUrl(sourceUrl)}`;
 function getShareTypography(font: ShareFont) {
   if (font === "modern-sans") {
     return {
-      displaySans: '"Helvetica Neue", "Arial", sans-serif',
-      displaySerif: '"PingFang SC", "Noto Sans SC", sans-serif',
-      bodySerif: '"PingFang SC", "Noto Sans SC", sans-serif',
-      sans: '"PingFang SC", "Noto Sans SC", sans-serif'
+      displaySans: '"Avenir Next", "Helvetica Neue", "Arial", sans-serif',
+      displaySerif: '"PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif',
+      bodySerif: '"PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif',
+      sans: '"PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif',
+      quoteWeight: 700
     };
   }
 
   if (font === "classic-song") {
     return {
-      displaySans: '"Helvetica Neue", "Arial", sans-serif',
+      displaySans: '"Times New Roman", "Songti SC", serif',
       displaySerif: '"Songti SC", "STSong", "Noto Serif SC", serif',
       bodySerif: '"Songti SC", "STSong", "Noto Serif SC", serif',
-      sans: '"Songti SC", "STSong", "Noto Serif SC", serif'
+      sans: '"Songti SC", "STSong", "Noto Serif SC", serif',
+      quoteWeight: 520
     };
   }
 
   return {
-    displaySans: '"Helvetica Neue", "Arial", sans-serif',
-    displaySerif: '"Iowan Old Style", "Songti SC", "Noto Serif SC", serif',
-    bodySerif: '"Songti SC", "Noto Serif SC", serif',
-    sans: '"PingFang SC", "Noto Sans SC", sans-serif'
+    displaySans: '"Baskerville", "Times New Roman", serif',
+    displaySerif: '"Kaiti SC", "STKaiti", "Baskerville", serif',
+    bodySerif: '"Kaiti SC", "STKaiti", "Songti SC", serif',
+    sans: '"PingFang SC", "Noto Sans SC", sans-serif',
+    quoteWeight: 600
   };
 }
 
@@ -1087,7 +1100,8 @@ function fitQuoteLayout(
   quote: string,
   maxWidth: number,
   options?: Array<{ size: number; lineHeight: number; maxLines: number }>,
-  fontFamily?: string
+  fontFamily?: string,
+  fontWeight = 600
 ) {
   const family = fontFamily || '"PingFang SC", "Noto Serif SC", serif';
   const presets =
@@ -1101,7 +1115,7 @@ function fitQuoteLayout(
     ];
 
   for (const option of presets) {
-    const font = `600 ${option.size}px ${family}`;
+    const font = `${fontWeight} ${option.size}px ${family}`;
     const lines = wrapCanvasText(context, quote, maxWidth, font);
     if (lines.length <= option.maxLines) {
       return {
@@ -1112,7 +1126,7 @@ function fitQuoteLayout(
     }
   }
 
-  const fallbackFont = `600 42px ${family}`;
+  const fallbackFont = `${fontWeight} 42px ${family}`;
   const fallbackLines = wrapCanvasText(context, quote, maxWidth, fallbackFont);
   return {
     font: fallbackFont,
@@ -1165,9 +1179,8 @@ function buildVerticalMainSeries(series: string) {
 }
 
 function buildVerticalAuthorLabel(username: string) {
-  const normalized = username.trim().replace(/\s+/g, "");
-  if (!normalized) return "";
-  return shortenTitle(normalized, /^[A-Za-z]+$/.test(normalized) ? 12 : 6);
+  void username;
+  return ARTICLE_AUTHOR_NAME;
 }
 
 function buildVerticalSourceLabel(username: string) {
