@@ -17,7 +17,12 @@ type ToolbarState = {
   placeBelow: boolean;
 };
 
-type ShareStyle = "ivory" | "editorial" | "ink" | "stone";
+type ShareStyle =
+  | "calendar-minimal"
+  | "midnight-note"
+  | "vertical-editorial"
+  | "sea-cover"
+  | "framed-paper";
 
 type ShareConfig = {
   quote: string;
@@ -32,27 +37,12 @@ type ShareAsset = {
   url: string;
 };
 
-type ShareTheme = {
-  backgroundTop: string;
-  backgroundBottom: string;
-  panel: string;
-  panelGlow: string;
-  border: string;
-  brand: string;
-  kicker: string;
-  text: string;
-  quoteMark: string;
-  divider: string;
-  sourceText: string;
-  stampText: string;
-  accent: string;
-};
-
 const SHARE_STYLE_OPTIONS: Array<{ key: ShareStyle; label: string; description: string }> = [
-  { key: "ivory", label: "暖白纸页", description: "克制、柔和，适合绝大多数段落" },
-  { key: "editorial", label: "刊物版式", description: "黑白更分明，像杂志内页" },
-  { key: "stone", label: "冷灰档案", description: "偏理性、简洁，留给观点本身" },
-  { key: "ink", label: "墨夜沉稳", description: "深色背景，适合更浓一点的气质" }
+  { key: "calendar-minimal", label: "日历留白", description: "像微信读书日历页，极简留白" },
+  { key: "midnight-note", label: "夜色摘录", description: "深色沉稳，上方信息轻、正文重" },
+  { key: "vertical-editorial", label: "竖排刊页", description: "更接近海报感，适合强主题段落" },
+  { key: "sea-cover", label: "海面封页", description: "上图下文，视觉更轻盈" },
+  { key: "framed-paper", label: "边框纸页", description: "浅色双框，像装裱后的卡片" }
 ];
 
 export function ArticleSelectionToolbar({
@@ -251,7 +241,7 @@ export function ArticleSelectionToolbar({
       title: articleTitle,
       sourceUrl: window.location.href,
       fileName: buildShareImageName(articleTitle),
-      style: shareConfig?.style || "ivory"
+      style: shareConfig?.style || "calendar-minimal"
     };
 
     clearSelectionAndHide();
@@ -515,7 +505,7 @@ async function createParagraphShareCard(input: ShareConfig): Promise<Blob | null
   if (!quote) return null;
 
   const width = 960;
-  const height = 1140;
+  const height = 1560;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -548,169 +538,351 @@ function renderShareCard(
   }
 ) {
   const { width, height, quote, title, sourceUrl, style } = input;
-  const theme = buildShareTheme(style);
   const safeTitle = title.trim() || "未命名文章";
 
-  const background = context.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, theme.backgroundTop);
-  background.addColorStop(1, theme.backgroundBottom);
-  context.fillStyle = background;
+  if (style === "midnight-note") {
+    renderMidnightNoteCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    return;
+  }
+
+  if (style === "vertical-editorial") {
+    renderVerticalEditorialCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    return;
+  }
+
+  if (style === "sea-cover") {
+    renderSeaCoverCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    return;
+  }
+
+  if (style === "framed-paper") {
+    renderFramedPaperCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+    return;
+  }
+
+  renderCalendarMinimalCard(context, { width, height, quote, title: safeTitle, sourceUrl });
+}
+
+function renderCalendarMinimalCard(
+  context: CanvasRenderingContext2D,
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+) {
+  const { width, height, quote, title, sourceUrl } = input;
+  const dateParts = getCalendarParts();
+
+  context.fillStyle = "#f8f7f4";
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = theme.panelGlow;
-  roundRect(context, 62, 72, width - 124, height - 144, 38);
-  context.fill();
+  context.textAlign = "center";
+  context.fillStyle = "#2b1a11";
+  context.font = '700 220px "Helvetica Neue", "Arial", sans-serif';
+  context.fillText(dateParts.day, width / 2, 300);
 
-  context.fillStyle = theme.panel;
-  roundRect(context, 54, 64, width - 108, height - 128, 34);
-  context.fill();
+  context.font = '700 62px "Helvetica Neue", "Arial", sans-serif';
+  context.fillText(`${dateParts.monthUpper} ${dateParts.year}`, width / 2, 420);
 
-  context.strokeStyle = theme.border;
-  context.lineWidth = 1.5;
-  roundRect(context, 54, 64, width - 108, height - 128, 34);
-  context.stroke();
+  context.fillStyle = "#4f4238";
+  context.font = '500 34px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(dateParts.weekday, width / 2, 498);
 
-  context.fillStyle = theme.brand;
-  context.font = '700 34px "Iowan Old Style", "Times New Roman", "Songti SC", serif';
-  context.fillText("QingInvest", 98, 138);
+  context.fillStyle = "rgba(88, 79, 72, 0.36)";
+  context.fillRect(width / 2 - 70, 610, 140, 2);
 
-  context.textAlign = "right";
-  context.fillStyle = theme.kicker;
-  context.font = '700 18px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("文章段落分享", width - 98, 136);
-  context.textAlign = "left";
+  const quoteLayout = fitQuoteLayout(context, quote, 760, [
+    { size: 62, lineHeight: 104, maxLines: 6 },
+    { size: 56, lineHeight: 96, maxLines: 7 },
+    { size: 50, lineHeight: 88, maxLines: 8 }
+  ]);
 
-  context.fillStyle = theme.divider;
-  context.fillRect(98, 170, width - 196, 1.5);
-  context.fillStyle = theme.accent;
-  context.fillRect(98, 170, 138, 3);
-
-  context.fillStyle = theme.quoteMark;
-  context.font = '700 124px "Cormorant Garamond", "Times New Roman", serif';
-  context.fillText("“", 102, 284);
-
-  const quoteLayout = fitQuoteLayout(context, quote, width - 220);
-  const quoteTop = 248;
-  let cursorY = quoteTop + quoteLayout.lineHeight;
-
-  context.fillStyle = theme.text;
+  context.fillStyle = "#2b1a11";
   context.font = quoteLayout.font;
+  const quoteBlockHeight = quoteLayout.lines.length * quoteLayout.lineHeight;
+  const quoteStartY = Math.max(730, 760 + (420 - quoteBlockHeight) / 2);
+  let cursorY = quoteStartY;
   for (const line of quoteLayout.lines) {
-    context.fillText(line, 122, cursorY);
+    context.fillText(line, width / 2, cursorY);
     cursorY += quoteLayout.lineHeight;
   }
 
-  const quoteBottom = cursorY - quoteLayout.lineHeight + 8;
-  const footerTop = Math.max(quoteBottom + 74, height - 206);
+  context.fillStyle = "#463a31";
+  context.font = '500 46px "Songti SC", "Noto Serif SC", serif';
+  context.fillText(`《${shortenTitle(title, 14)}》`, width / 2, height - 260);
 
-  context.fillStyle = theme.divider;
-  context.fillRect(98, footerTop, width - 196, 1.5);
+  context.font = '400 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(formatShareStamp(sourceUrl), width / 2, height - 206);
 
-  const sourceLabel = `选自《${safeTitle}》`;
-  const sourceFont = '600 24px "PingFang SC", "Noto Sans SC", sans-serif';
-  const sourceLines = wrapCanvasText(context, sourceLabel, 430, sourceFont);
-  const limitedSource = clampLines(context, sourceLines, 2, 430, sourceFont);
-
-  context.fillStyle = theme.sourceText;
-  context.font = sourceFont;
-  for (const [index, line] of limitedSource.entries()) {
-    context.fillText(line, 98, footerTop + 54 + index * 32);
-  }
-
-  const stampText = formatShareStamp(sourceUrl);
-  context.textAlign = "right";
-  context.fillStyle = theme.stampText;
-  context.font = '600 20px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText(stampText, width - 98, footerTop + 56);
-
-  context.fillStyle = theme.kicker;
-  context.font = '600 16px "PingFang SC", "Noto Sans SC", sans-serif';
-  context.fillText("qing-invest.vercel.app", width - 98, footerTop + 90);
+  context.fillStyle = "rgba(97, 90, 84, 0.75)";
+  context.font = '400 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("QingInvest", width / 2, height - 116);
   context.textAlign = "left";
 }
 
-function buildShareTheme(style: ShareStyle): ShareTheme {
-  if (style === "editorial") {
-    return {
-      backgroundTop: "#f8f6f1",
-      backgroundBottom: "#ece7dc",
-      panel: "rgba(255,255,255,0.9)",
-      panelGlow: "rgba(255,255,255,0.45)",
-      border: "rgba(28,27,24,0.14)",
-      brand: "#171614",
-      kicker: "#5d584d",
-      text: "#11100f",
-      quoteMark: "rgba(17,16,15,0.12)",
-      divider: "rgba(17,16,15,0.1)",
-      sourceText: "#292724",
-      stampText: "#2c2a26",
-      accent: "#12110f"
-    };
+function renderMidnightNoteCard(
+  context: CanvasRenderingContext2D,
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+) {
+  const { width, height, quote, title, sourceUrl } = input;
+
+  context.fillStyle = "#1c1d24";
+  context.fillRect(0, 0, width, height);
+
+  drawAvatarSeal(context, 120, 138, 48, "#f2e2c1", "#5a4a38", "清", "#f7ead3");
+
+  context.fillStyle = "#f0dfbd";
+  context.font = '700 56px "Songti SC", "Noto Serif SC", serif';
+  context.fillText("行成于思", 198, 152);
+  context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(`摘录于 ${formatDateCn()}`, 198, 214);
+
+  const quoteLayout = fitQuoteLayout(context, quote, 780, [
+    { size: 66, lineHeight: 118, maxLines: 5 },
+    { size: 60, lineHeight: 108, maxLines: 6 },
+    { size: 54, lineHeight: 96, maxLines: 7 }
+  ]);
+
+  context.fillStyle = "#f0dfbd";
+  context.font = quoteLayout.font;
+  let cursorY = 560;
+  for (const line of quoteLayout.lines) {
+    context.fillText(line, 92, cursorY);
+    cursorY += quoteLayout.lineHeight;
   }
 
-  if (style === "stone") {
-    return {
-      backgroundTop: "#f2f3f4",
-      backgroundBottom: "#e5e7ea",
-      panel: "rgba(255,255,255,0.84)",
-      panelGlow: "rgba(255,255,255,0.36)",
-      border: "rgba(71,76,84,0.12)",
-      brand: "#20242a",
-      kicker: "#66707d",
-      text: "#1d2127",
-      quoteMark: "rgba(31,39,49,0.11)",
-      divider: "rgba(45,52,61,0.1)",
-      sourceText: "#2b3139",
-      stampText: "#313740",
-      accent: "#5f6c7b"
-    };
+  context.fillStyle = "#d2c1a4";
+  context.font = '500 34px "PingFang SC", "Noto Sans SC", sans-serif';
+  const sourceLines = clampLines(
+    context,
+    wrapCanvasText(context, `/ ${shortenTitle(title, 28)}`, 780, context.font),
+    2,
+    780,
+    context.font
+  );
+  for (const [index, line] of sourceLines.entries()) {
+    context.fillText(line, 92, cursorY + 34 + index * 46);
   }
 
-  if (style === "ink") {
-    return {
-      backgroundTop: "#12161d",
-      backgroundBottom: "#090c11",
-      panel: "rgba(19,25,33,0.92)",
-      panelGlow: "rgba(9,12,17,0.45)",
-      border: "rgba(233,222,206,0.12)",
-      brand: "#f3eee6",
-      kicker: "#c1b297",
-      text: "#f6efe6",
-      quoteMark: "rgba(242,231,212,0.09)",
-      divider: "rgba(242,231,212,0.12)",
-      sourceText: "#efe7dc",
-      stampText: "#eadfce",
-      accent: "#d4af75"
-    };
-  }
-
-  return {
-    backgroundTop: "#faf7f1",
-    backgroundBottom: "#eee7db",
-    panel: "rgba(255,255,255,0.78)",
-    panelGlow: "rgba(255,255,255,0.44)",
-    border: "rgba(116,100,78,0.12)",
-    brand: "#302a23",
-    kicker: "#8a7a63",
-    text: "#26211b",
-    quoteMark: "rgba(124,108,85,0.12)",
-    divider: "rgba(115,99,76,0.12)",
-    sourceText: "#3a342b",
-    stampText: "#4b443a",
-    accent: "#a88c65"
-  };
+  context.fillStyle = "rgba(208, 193, 164, 0.28)";
+  context.fillRect(92, height - 288, width - 184, 1.5);
+  context.fillStyle = "#d2c1a4";
+  context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(compactUrl(sourceUrl), 92, height - 190);
 }
 
-function fitQuoteLayout(context: CanvasRenderingContext2D, quote: string, maxWidth: number) {
-  const options = [
-    { size: 58, lineHeight: 78, maxLines: 7 },
-    { size: 54, lineHeight: 74, maxLines: 8 },
-    { size: 50, lineHeight: 70, maxLines: 9 },
-    { size: 46, lineHeight: 66, maxLines: 10 },
-    { size: 42, lineHeight: 62, maxLines: 11 }
-  ];
+function renderVerticalEditorialCard(
+  context: CanvasRenderingContext2D,
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+) {
+  const { width, height, quote, title, sourceUrl } = input;
 
-  for (const option of options) {
+  context.fillStyle = "#1b1d24";
+  context.fillRect(0, 0, width, height);
+
+  drawDistressedBar(context, 84, 92, width - 168, "#d8cbab");
+  drawDistressedBar(context, 84, height - 120, width - 168, "#d8cbab");
+
+  drawVerticalText(context, titleToVerticalColumns(title), 100, 212, {
+    color: "#efe0bb",
+    font: '700 74px "PingFang SC", "Noto Sans SC", sans-serif',
+    lineGap: 18,
+    columnGap: 32
+  });
+
+  drawVerticalText(context, ["QingInvest", "摘录于", formatDateCn(true)], width - 146, 224, {
+    color: "#b7aa90",
+    font: '500 30px "Songti SC", "Noto Serif SC", serif',
+    lineGap: 20,
+    columnGap: 40
+  });
+
+  context.strokeStyle = "rgba(207, 193, 163, 0.28)";
+  context.lineWidth = 1.5;
+  context.beginPath();
+  context.moveTo(width - 196, 220);
+  context.lineTo(width - 196, 720);
+  context.moveTo(width - 276, 220);
+  context.lineTo(width - 276, 720);
+  context.stroke();
+
+  const quoteLayout = fitQuoteLayout(context, quote, 760, [
+    { size: 62, lineHeight: 104, maxLines: 6 },
+    { size: 56, lineHeight: 94, maxLines: 7 },
+    { size: 50, lineHeight: 86, maxLines: 8 }
+  ]);
+
+  context.fillStyle = "#efe0bb";
+  context.font = quoteLayout.font;
+  let cursorY = 870;
+  for (const line of quoteLayout.lines) {
+    context.fillText(line, 94, cursorY);
+    cursorY += quoteLayout.lineHeight;
+  }
+
+  context.fillStyle = "#d7c7a8";
+  context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
+  const sourceText = `/ ${shortenTitle(title, 26)}`;
+  const sourceLines = clampLines(
+    context,
+    wrapCanvasText(context, sourceText, 760, context.font),
+    2,
+    760,
+    context.font
+  );
+  for (const [index, line] of sourceLines.entries()) {
+    context.fillText(line, 94, cursorY + 24 + index * 42);
+  }
+
+  context.fillStyle = "#d7c7a8";
+  context.font = '500 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(compactUrl(sourceUrl), 94, height - 188);
+}
+
+function renderSeaCoverCard(
+  context: CanvasRenderingContext2D,
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+) {
+  const { width, height, quote, title, sourceUrl } = input;
+
+  drawSeaBackground(context, 0, 0, width, 730);
+  context.fillStyle = "#f7f7f6";
+  context.fillRect(0, 730, width, height - 730);
+
+  drawVerticalText(context, titleToVerticalColumns(title), 92, 150, {
+    color: "#ffffff",
+    font: '700 70px "PingFang SC", "Noto Sans SC", sans-serif',
+    lineGap: 18,
+    columnGap: 30
+  });
+
+  drawVerticalText(context, ["QingInvest"], 248, 166, {
+    color: "rgba(255,255,255,0.96)",
+    font: '600 28px "Helvetica Neue", "Arial", sans-serif',
+    lineGap: 20,
+    columnGap: 28
+  });
+
+  const quoteLayout = fitQuoteLayout(context, quote, 760, [
+    { size: 62, lineHeight: 106, maxLines: 5 },
+    { size: 56, lineHeight: 96, maxLines: 6 },
+    { size: 50, lineHeight: 88, maxLines: 7 }
+  ]);
+
+  context.fillStyle = "#1d2230";
+  context.font = quoteLayout.font;
+  let cursorY = 910;
+  for (const line of quoteLayout.lines) {
+    context.fillText(line, 88, cursorY);
+    cursorY += quoteLayout.lineHeight;
+  }
+
+  context.fillStyle = "#4a4f5c";
+  context.font = '500 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  const sourceLines = clampLines(
+    context,
+    wrapCanvasText(context, `/ ${shortenTitle(title, 28)}`, 780, context.font),
+    2,
+    780,
+    context.font
+  );
+  for (const [index, line] of sourceLines.entries()) {
+    context.fillText(line, 88, cursorY + 24 + index * 40);
+  }
+
+  context.fillStyle = "rgba(92, 96, 108, 0.28)";
+  context.fillRect(88, height - 302, width - 176, 1.5);
+
+  context.fillStyle = "#303644";
+  context.font = '600 26px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(`QingInvest · 摘录于 ${formatDateCn()}`, 88, height - 188);
+  context.fillStyle = "#696d79";
+  context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(compactUrl(sourceUrl), 88, height - 136);
+}
+
+function renderFramedPaperCard(
+  context: CanvasRenderingContext2D,
+  input: { width: number; height: number; quote: string; title: string; sourceUrl: string }
+) {
+  const { width, height, quote, title, sourceUrl } = input;
+
+  context.fillStyle = "#f5f3ee";
+  context.fillRect(0, 0, width, height);
+
+  context.strokeStyle = "#d3cec4";
+  context.lineWidth = 4;
+  context.strokeRect(42, 110, width - 84, height - 220);
+  context.lineWidth = 2;
+  context.strokeRect(54, 122, width - 108, height - 244);
+
+  context.fillStyle = "#faf9f6";
+  context.fillRect(54, 122, width - 108, height - 244);
+
+  drawAvatarSeal(context, 120, 250, 48, "#3d3933", "#efe6d6", "清", "#ffffff");
+
+  context.fillStyle = "#5c5349";
+  context.font = '700 54px "Songti SC", "Noto Serif SC", serif';
+  context.fillText("行成于思", 198, 262);
+  context.font = '400 28px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText(`摘录于 ${formatDateCn()}`, 198, 324);
+
+  context.strokeStyle = "rgba(115, 106, 94, 0.14)";
+  context.lineWidth = 1.5;
+  context.beginPath();
+  context.moveTo(54, 430);
+  context.lineTo(width - 54, 430);
+  context.moveTo(54, 1140);
+  context.lineTo(width - 54, 1140);
+  context.stroke();
+
+  const quoteLayout = fitQuoteLayout(context, quote, 730, [
+    { size: 60, lineHeight: 110, maxLines: 5 },
+    { size: 54, lineHeight: 100, maxLines: 6 },
+    { size: 48, lineHeight: 88, maxLines: 7 }
+  ]);
+
+  context.fillStyle = "#2a1f18";
+  context.font = quoteLayout.font;
+  let cursorY = 610;
+  for (const line of quoteLayout.lines) {
+    context.fillText(line, 88, cursorY);
+    cursorY += quoteLayout.lineHeight;
+  }
+
+  context.fillStyle = "#5f564d";
+  context.font = '500 30px "PingFang SC", "Noto Sans SC", sans-serif';
+  const sourceText = `${shortenTitle(title, 28)}\n${compactUrl(sourceUrl)}`;
+  const sourceLines = clampLines(
+    context,
+    wrapCanvasText(context, sourceText, 760, context.font),
+    3,
+    760,
+    context.font
+  );
+  for (const [index, line] of sourceLines.entries()) {
+    context.fillText(line, 88, 930 + index * 42);
+  }
+
+  context.fillStyle = "#7b7268";
+  context.font = '400 24px "PingFang SC", "Noto Sans SC", sans-serif';
+  context.fillText("QingInvest", 88, 1328);
+}
+
+function fitQuoteLayout(
+  context: CanvasRenderingContext2D,
+  quote: string,
+  maxWidth: number,
+  options?: Array<{ size: number; lineHeight: number; maxLines: number }>
+) {
+  const presets =
+    options ||
+    [
+      { size: 58, lineHeight: 78, maxLines: 7 },
+      { size: 54, lineHeight: 74, maxLines: 8 },
+      { size: 50, lineHeight: 70, maxLines: 9 },
+      { size: 46, lineHeight: 66, maxLines: 10 },
+      { size: 42, lineHeight: 62, maxLines: 11 }
+    ];
+
+  for (const option of presets) {
     const font = `600 ${option.size}px "PingFang SC", "Noto Serif SC", serif`;
     const lines = wrapCanvasText(context, quote, maxWidth, font);
     if (lines.length <= option.maxLines) {
@@ -729,6 +901,131 @@ function fitQuoteLayout(context: CanvasRenderingContext2D, quote: string, maxWid
     lineHeight: 62,
     lines: clampLines(context, fallbackLines, 11, maxWidth, fallbackFont)
   };
+}
+
+function getCalendarParts() {
+  const date = new Date();
+  return {
+    day: `${date.getDate()}`.padStart(2, "0"),
+    monthUpper: date.toLocaleDateString("en-US", { month: "long" }).toUpperCase(),
+    year: `${date.getFullYear()}`,
+    weekday: date.toLocaleDateString("zh-CN", { weekday: "long" })
+  };
+}
+
+function formatDateCn(vertical = false) {
+  const date = new Date();
+  const text = `${date.getFullYear()}年·${date.getMonth() + 1}月·${date.getDate()}日`;
+  return vertical ? text : text.replace(/·/g, "/").replace("年/", "/").replace("月/", "/").replace("日", "");
+}
+
+function shortenTitle(title: string, maxChars: number) {
+  if (title.length <= maxChars) return title;
+  return `${title.slice(0, maxChars)}…`;
+}
+
+function titleToVerticalColumns(title: string) {
+  const compact = title.replace(/\s+/g, "");
+  const safe = compact.length > 10 ? compact.slice(0, 10) : compact;
+  return safe.match(/.{1,4}/g) || [safe || "文章摘录"];
+}
+
+function drawVerticalText(
+  context: CanvasRenderingContext2D,
+  columns: string[],
+  startX: number,
+  startY: number,
+  options: { color: string; font: string; lineGap: number; columnGap: number }
+) {
+  context.fillStyle = options.color;
+  context.font = options.font;
+  for (const [columnIndex, column] of columns.entries()) {
+    let y = startY;
+    const x = startX + columnIndex * options.columnGap;
+    for (const char of column) {
+      context.fillText(char, x, y);
+      y += getFontSize(options.font) + options.lineGap;
+    }
+  }
+}
+
+function getFontSize(font: string) {
+  const match = font.match(/(\d+)px/);
+  return match ? Number(match[1]) : 24;
+}
+
+function drawAvatarSeal(
+  context: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  radius: number,
+  bg: string,
+  fg: string,
+  label: string,
+  labelColor: string
+) {
+  const gradient = context.createRadialGradient(centerX - 10, centerY - 12, 8, centerX, centerY, radius);
+  gradient.addColorStop(0, bg);
+  gradient.addColorStop(1, fg);
+  context.fillStyle = gradient;
+  context.beginPath();
+  context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = labelColor;
+  context.font = '700 42px "Songti SC", "Noto Serif SC", serif';
+  context.textAlign = "center";
+  context.fillText(label, centerX, centerY + 14);
+  context.textAlign = "left";
+}
+
+function drawDistressedBar(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  color: string
+) {
+  context.fillStyle = color;
+  context.fillRect(x, y, width, 12);
+  context.fillStyle = "rgba(27, 29, 36, 0.18)";
+  for (let index = 0; index < 32; index += 1) {
+    const rx = x + ((index * 97) % width);
+    const rw = 8 + ((index * 13) % 26);
+    context.fillRect(rx, y + (index % 3), rw, 4 + (index % 4));
+  }
+}
+
+function drawSeaBackground(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  const sky = context.createLinearGradient(0, y, 0, y + height);
+  sky.addColorStop(0, "#8bb7df");
+  sky.addColorStop(0.38, "#74a8d9");
+  sky.addColorStop(1, "#245f93");
+  context.fillStyle = sky;
+  context.fillRect(x, y, width, height);
+
+  context.fillStyle = "rgba(255,255,255,0.26)";
+  context.fillRect(x, y + 180, width, 3);
+
+  for (let row = 0; row < 18; row += 1) {
+    const yy = y + 220 + row * 26;
+    context.strokeStyle = `rgba(255,255,255,${0.05 + row * 0.008})`;
+    context.lineWidth = 16 + (row % 3) * 6;
+    context.beginPath();
+    context.moveTo(x - 30, yy);
+    for (let step = 0; step <= 8; step += 1) {
+      const px = x + (width / 8) * step;
+      const py = yy + Math.sin(step * 0.9 + row * 0.55) * (8 + row * 0.9);
+      context.lineTo(px, py);
+    }
+    context.stroke();
+  }
 }
 
 function clampLines(
