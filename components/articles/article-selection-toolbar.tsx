@@ -723,9 +723,12 @@ function renderVerticalEditorialCard(
     columnGap: 32
   });
 
-  const rightColumns = username.trim()
-    ? [shortenTitle(username.trim(), 4), "摘录于", formatDateCn(true)]
-    : ["摘录于", formatDateCn(true)];
+  const rightColumns = [...getVerticalDateColumns()];
+  if (shouldUseVerticalName(username)) {
+    rightColumns.unshift(shortenTitle(username.trim(), 4));
+  } else {
+    rightColumns.unshift("摘录于");
+  }
   drawVerticalText(context, rightColumns, width - 186, 224, {
     color: "#b7aa90",
     font: '500 30px "Songti SC", "Noto Serif SC", serif',
@@ -736,11 +739,17 @@ function renderVerticalEditorialCard(
   context.strokeStyle = "rgba(207, 193, 163, 0.28)";
   context.lineWidth = 1.5;
   context.beginPath();
-  context.moveTo(width - 156, 220);
-  context.lineTo(width - 156, 720);
-  context.moveTo(width - 236, 220);
-  context.lineTo(width - 236, 720);
+  context.moveTo(width - 154, 220);
+  context.lineTo(width - 154, 720);
+  context.moveTo(width - 234, 220);
+  context.lineTo(width - 234, 720);
   context.stroke();
+
+  if (username.trim() && !shouldUseVerticalName(username)) {
+    context.fillStyle = "#b7aa90";
+    context.font = '500 20px "Helvetica Neue", "Arial", sans-serif';
+    context.fillText(shortenTitle(username.trim(), 18), width - 274, 190);
+  }
 
   const quoteLayout = fitQuoteLayout(context, quote, 760, [
     { size: 62, lineHeight: 104, maxLines: 6 },
@@ -792,7 +801,7 @@ function renderSeaCoverCard(
     columnGap: 30
   });
 
-  if (username.trim()) {
+  if (username.trim() && shouldUseVerticalName(username)) {
     drawVerticalText(context, [shortenTitle(username.trim(), 4)], 248, 166, {
       color: "rgba(255,255,255,0.96)",
       font: '600 28px "Helvetica Neue", "Arial", sans-serif',
@@ -833,7 +842,9 @@ function renderSeaCoverCard(
 
   context.fillStyle = "#303644";
   context.font = '600 26px "PingFang SC", "Noto Sans SC", sans-serif';
-  const footerLead = username.trim() ? `${shortenTitle(username.trim(), 10)} · 摘录于 ${formatDateCn()}` : `摘录于 ${formatDateCn()}`;
+  const footerLead = username.trim()
+    ? `${shortenTitle(username.trim(), 10)} · 摘录于 ${formatDateCn()}`
+    : `摘录于 ${formatDateCn()}`;
   context.fillText(footerLead, 88, height - 188);
   context.fillStyle = "#696d79";
   context.font = '500 22px "PingFang SC", "Noto Sans SC", sans-serif';
@@ -961,8 +972,10 @@ function getCalendarParts() {
 
 function formatDateCn(vertical = false) {
   const date = new Date();
-  const text = `${date.getFullYear()}年·${date.getMonth() + 1}月·${date.getDate()}日`;
-  return vertical ? text : text.replace(/·/g, "/").replace("年/", "/").replace("月/", "/").replace("日", "");
+  const yyyy = `${date.getFullYear()}`;
+  const mm = `${date.getMonth() + 1}`.padStart(2, "0");
+  const dd = `${date.getDate()}`.padStart(2, "0");
+  return vertical ? `${yyyy}年${mm}月${dd}日` : `${yyyy}/${mm}/${dd}`;
 }
 
 function shortenTitle(title: string, maxChars: number) {
@@ -971,9 +984,23 @@ function shortenTitle(title: string, maxChars: number) {
 }
 
 function titleToVerticalColumns(title: string) {
-  const compact = title.replace(/\s+/g, "");
+  const compact = title.replace(/[《》/·•,:：，。、“”‘’\-\s]/g, "");
   const safe = compact.length > 10 ? compact.slice(0, 10) : compact;
   return safe.match(/.{1,4}/g) || [safe || "文章摘录"];
+}
+
+function getVerticalDateColumns() {
+  const date = new Date();
+  const yyyy = `${date.getFullYear()}年`;
+  const mm = `${date.getMonth() + 1}`.padStart(2, "0");
+  const dd = `${date.getDate()}`.padStart(2, "0");
+  return ["摘录于", yyyy, `${mm}月`, `${dd}日`];
+}
+
+function shouldUseVerticalName(value: string) {
+  const text = value.trim();
+  if (!text) return false;
+  return !/[A-Za-z]/.test(text);
 }
 
 function drawVerticalText(
