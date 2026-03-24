@@ -688,6 +688,12 @@ function renderCalendarMinimalCard(
   drawSoftVignette(context, width, height, "rgba(120, 102, 72, 0.08)");
   drawFineFrame(context, 38, 38, width - 76, height - 76, "rgba(118, 98, 68, 0.22)", 1.2);
   drawFineFrame(context, 58, 58, width - 116, height - 116, "rgba(174, 152, 120, 0.18)", 1);
+  drawLiftedPanel(context, 92, 560, width - 184, 582, 38, {
+    fillTop: "rgba(255, 252, 246, 0.94)",
+    fillBottom: "rgba(247, 240, 229, 0.94)",
+    border: "rgba(171, 145, 101, 0.24)",
+    shadow: "rgba(100, 78, 49, 0.14)"
+  });
 
   context.textAlign = "center";
   context.fillStyle = "#2b1a11";
@@ -705,8 +711,13 @@ function renderCalendarMinimalCard(
   context.beginPath();
   context.arc(width / 2, 360, 220, 0, Math.PI * 2);
   context.fill();
-  context.fillStyle = "rgba(88, 79, 72, 0.36)";
-  context.fillRect(width / 2 - 70, 610, 140, 2);
+  context.fillStyle = "rgba(88, 79, 72, 0.22)";
+  context.fillRect(width / 2 - 58, 598, 116, 2);
+  drawQuoteMarks(context, width / 2, 650, {
+    color: "rgba(163, 132, 86, 0.28)",
+    font: `700 102px ${typography.displaySerif}`,
+    align: "center"
+  });
 
   const quoteLayout = fitQuoteLayout(
     context,
@@ -724,7 +735,7 @@ function renderCalendarMinimalCard(
   context.fillStyle = "#2b1a11";
   context.font = quoteLayout.font;
   const quoteBlockHeight = quoteLayout.lines.length * quoteLayout.lineHeight;
-  const quoteStartY = Math.max(730, 760 + (420 - quoteBlockHeight) / 2);
+  const quoteStartY = Math.max(738, 770 + (400 - quoteBlockHeight) / 2);
   let cursorY = quoteStartY;
   for (const line of quoteLayout.lines) {
     context.fillText(line, width / 2, cursorY);
@@ -733,14 +744,14 @@ function renderCalendarMinimalCard(
 
   context.fillStyle = "#463a31";
   context.font = `500 46px ${typography.bodySerif}`;
-  context.fillText(`《${shortenTitle(title, 14)}》`, width / 2, height - 260);
+  context.fillText(`《${shortenTitle(title, 14)}》`, width / 2, height - 226);
 
   context.font = `400 28px ${typography.sans}`;
-  context.fillText(formatShareStamp(sourceUrl), width / 2, height - 206);
+  context.fillText(formatShareStamp(sourceUrl), width / 2, height - 182);
 
   context.fillStyle = "rgba(97, 90, 84, 0.75)";
   context.font = `400 24px ${typography.sans}`;
-  context.fillText("QingInvest", width / 2, height - 116);
+  context.fillText("QingInvest", width / 2, height - 112);
   context.textAlign = "left";
 }
 
@@ -774,6 +785,12 @@ function renderMidnightNoteCard(
   glow.addColorStop(1, "rgba(237, 201, 139, 0)");
   context.fillStyle = glow;
   context.fillRect(0, 0, width, 420);
+  drawLiftedPanel(context, 62, 92, width - 124, height - 184, 34, {
+    fillTop: "rgba(29, 33, 43, 0.5)",
+    fillBottom: "rgba(14, 16, 23, 0.28)",
+    border: "rgba(226, 198, 152, 0.18)",
+    shadow: "rgba(0, 0, 0, 0.34)"
+  });
 
   drawAvatarSeal(context, 120, 138, 48, "#f2e2c1", "#5a4a38", "清", "#f7ead3");
 
@@ -785,6 +802,11 @@ function renderMidnightNoteCard(
   context.fillStyle = "#d7c7a8";
   context.font = `500 30px ${typography.sans}`;
   context.fillText(`摘录于 ${formatDateCn()}`, 198, headerName ? 214 : 176);
+  drawQuoteMarks(context, 108, 364, {
+    color: "rgba(242, 226, 193, 0.16)",
+    font: `700 124px ${typography.displaySerif}`,
+    align: "left"
+  });
 
   const quoteLayout = fitQuoteLayout(
     context,
@@ -866,6 +888,12 @@ function renderVerticalEditorialCard(
   drawDistressedBar(context, 84, 92, width - 168, "#d8cbab");
   drawDistressedBar(context, 84, height - 120, width - 168, "#d8cbab");
   drawFineFrame(context, 60, 60, width - 120, height - 120, "rgba(214, 193, 154, 0.14)", 1);
+  drawLiftedPanel(context, 78, 760, width - 156, 470, 26, {
+    fillTop: "rgba(33, 37, 47, 0.74)",
+    fillBottom: "rgba(17, 19, 26, 0.72)",
+    border: "rgba(221, 199, 156, 0.16)",
+    shadow: "rgba(0, 0, 0, 0.24)"
+  });
 
   drawVerticalText(context, titleColumns, 110, 214, {
     color: "#efe0bb",
@@ -963,6 +991,12 @@ function renderSeaCoverCard(
   context.fillRect(0, 730, width, height - 730);
   drawPaperTexture(context, 0, 730, width, height - 730, 0.075);
   drawSoftVignette(context, width, height, "rgba(91, 110, 133, 0.07)");
+  drawLiftedPanel(context, 64, 774, width - 128, 620, 34, {
+    fillTop: "rgba(255, 255, 255, 0.92)",
+    fillBottom: "rgba(245, 240, 231, 0.95)",
+    border: "rgba(118, 132, 152, 0.16)",
+    shadow: "rgba(70, 86, 111, 0.16)"
+  });
 
   drawVerticalText(context, ["文摘"], 90, 112, {
     color: "#ffffff",
@@ -994,7 +1028,12 @@ function renderSeaCoverCard(
 
   context.fillStyle = "#1d2230";
   context.font = quoteLayout.font;
-  let cursorY = 910;
+  drawQuoteMarks(context, 100, 868, {
+    color: "rgba(83, 102, 133, 0.14)",
+    font: `700 108px ${typography.displaySerif}`,
+    align: "left"
+  });
+  let cursorY = 934;
   for (const line of quoteLayout.lines) {
     context.fillText(line, 88, cursorY);
     cursorY += quoteLayout.lineHeight;
@@ -1066,6 +1105,12 @@ function renderFramedPaperCard(
   context.fillRect(54, 122, width - 108, height - 244);
   drawPaperTexture(context, 54, 122, width - 108, height - 244, 0.075);
   drawFineFrame(context, 72, 140, width - 144, height - 280, "rgba(129, 110, 81, 0.1)", 1);
+  drawLiftedPanel(context, 78, 162, width - 156, height - 324, 30, {
+    fillTop: "rgba(255, 252, 246, 0.48)",
+    fillBottom: "rgba(247, 240, 229, 0.24)",
+    border: "rgba(133, 112, 79, 0.08)",
+    shadow: "rgba(89, 72, 43, 0.12)"
+  });
 
   drawAvatarSeal(context, 120, 250, 48, "#3d3933", "#efe6d6", "清", "#ffffff");
 
@@ -1374,6 +1419,60 @@ function drawPaperTexture(
   context.restore();
 }
 
+function drawLiftedPanel(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  options: {
+    fillTop: string;
+    fillBottom: string;
+    border: string;
+    shadow: string;
+  }
+) {
+  context.save();
+  context.shadowColor = options.shadow;
+  context.shadowBlur = 34;
+  context.shadowOffsetY = 14;
+  context.fillStyle = options.fillBottom;
+  drawRoundedRectPath(context, x, y, width, height, radius);
+  context.fill();
+  context.restore();
+
+  const fill = context.createLinearGradient(0, y, 0, y + height);
+  fill.addColorStop(0, options.fillTop);
+  fill.addColorStop(1, options.fillBottom);
+  context.fillStyle = fill;
+  drawRoundedRectPath(context, x, y, width, height, radius);
+  context.fill();
+
+  context.strokeStyle = options.border;
+  context.lineWidth = 1.1;
+  drawRoundedRectPath(context, x, y, width, height, radius);
+  context.stroke();
+}
+
+function drawQuoteMarks(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  options: {
+    color: string;
+    font: string;
+    align: CanvasTextAlign;
+  }
+) {
+  context.save();
+  context.fillStyle = options.color;
+  context.font = options.font;
+  context.textAlign = options.align;
+  context.fillText("“”", x, y);
+  context.restore();
+}
+
 function drawSoftVignette(
   context: CanvasRenderingContext2D,
   width: number,
@@ -1401,6 +1500,23 @@ function drawFineFrame(
   context.lineWidth = lineWidth;
   context.strokeRect(x, y, width, height);
   context.restore();
+}
+
+function drawRoundedRectPath(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.arcTo(x + width, y, x + width, y + height, radius);
+  context.arcTo(x + width, y + height, x, y + height, radius);
+  context.arcTo(x, y + height, x, y, radius);
+  context.arcTo(x, y, x + width, y, radius);
+  context.closePath();
 }
 
 function drawSeaBackground(
